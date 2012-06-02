@@ -1,0 +1,32 @@
+Settings ::= '<Settings >' Paths AspectRatio Window Hotkeys Rewind '</Settings>'
+
+Paths ::= '<Paths>' LastAccessedSystem LastAccessedCore '</Paths>'
+
+AspectRatio ::= '<AspectRatio keep="' Bool '" />'
+ 
+Window ::= '<Window height="' number '" width="' number '" />'
+
+Hotkeys ::= '<Hotkeys>' (Button)9 '</Hotkeys>'
+
+Rewind ::= '<Rewind Compress="' Bool '" Enabled="' Bool '" Frames="' numer '" Size="' number '" />'
+
+LastAccessedSystem ::= '<LastAccessedSystem path="' string '" />'
+
+LastAccessedCore ::= '<LastAccessedCore path="' string '" />'
+
+Button ::= '<Button Mapping="' string '" name="' string '" type="' DigOrAnalog '" />'
+
+Bool ::= "True" | "False"
+
+DigOrAnalog ::= "digital" | "analog"
+
+string ::= char [,char]*
+
+number ::= digit [,digit]
+
+char ::= a-z | A-Z | 0-9 | whitespace
+
+whitespace ::= " " | "\t"
+
+digit ::= 0-9
+

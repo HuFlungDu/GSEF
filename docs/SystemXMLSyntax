@@ -1,0 +1,36 @@
+System ::= '<System name = "' string '">' Sound Menu Controls '</System>'
+
+Sound ::= '<Sound Bitlength="' number '" BufferLength="' number '" Channels="' number '" Endianness="' Endianness '" Frequency="' number '" FrequencyRange="' number '-' number '" />'
+
+Menu ::= '<Menu>' [menuitem]* '</Menu>'
+
+menuitem ::= '<menuitem action="' string '" text="' stgring '" />'
+
+Controls ::= '<Controls>' Port [,Port]* '</Controls>'
+
+Port ::= '<Port name="' string '">' Controller [,Controller]* '</Port>'
+
+Controller ::= '<Controller name="' string '">' ((Button|Axis) [,(Button|Axis)]*|Port*)
+
+Button ::= '<Button Mapping="' string '" name="' string '" type="' DigOrAnalog '" />'
+
+Axis ::= '<Axis Mapping="' string '" Positioning="' Rel '" name="' string '" />'
+
+Rel ::= "Relative" | "Absolute"
+
+Bool ::= "True" | "False"
+
+DigOrAnalog ::= "digital" | "analog"
+
+Endianness ::= "little" | "big"
+
+string ::= char [,char]*
+
+number ::= digit [,digit]
+
+char ::= a-z | A-Z | 0-9 | whitespace
+
+whitespace ::= " " | "\t"
+
+digit ::= 0-9
+

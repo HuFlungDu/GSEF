@@ -1,0 +1,105 @@
+A "system" file is an archive containing all the necessary files for the system. There is only one file required by GSEF (__init__.py), but this will include any other libraries you need for interfacing with the cores (or, as is often the case, a library that a core will need to import). __init__.py must in some way implement a "system" object. This can either be implemented in within the __init__.py file or elsewhere and be implemented by the init file, but the class "system" must be available if the file file is imported. The system class must implement these functions:
+
+__init__
+	Arguments:
+		None
+	Returns:
+		None
+	Explanation:
+		Normal init for an object, initiate variables and whatnot. DO NOT import a core yet
+
+
+load_core
+	Arguments:
+		CoreName - A string containing the name of the core to be loaded
+	Returns:
+		None
+	Explanation:
+		Loads up the core by the core name. Cores will be stored under the path "path/to/system/Core_*CoreName*". So, for instance, if the core is implemented in python (as the ones I wrote are), it would be loaded like:
+
+	    tcore = __import__("Core_" + CoreName)
+            self.Core = tcore.core()
+
+unload_core
+	Arguments:
+		None
+	Returns:
+		Nothing
+	Explanation:
+		frees up all recources allocated to the core, called during shutdown
+
+load_game
+	Arguments:
+		gamepath - A full path to the folder containing the game file
+		gamefile - The name of the game file
+		patchpath - Full path to the floder containing the patch the program should be loaded with. This is to be handled by the system in whatever way seems valid
+		patcher - A string name for the patcher to be used with the patch file.Again, the system implements this.
+
+	Returns:
+		bool - True if the program was correctly loaded
+	Explanation:
+		Initiates and loads a program. If a patch is provided, a suitable patcher is to be found to apply that patch to the program file and passed into the core as is appropriate
+
+run_frame
+	Arguments:
+		None
+	Returns:
+		Nothing
+	Explanation:
+		Runs the system for exactly one frame. Returns False if the frame did not run, True otherwise.
+
+close
+	Arguments:
+		None
+	Returns:
+		Nothing
+	Explanation:
+		Closes down the system, free up all resources.
+
+update_controls
+	Arguments:
+		controldic - a dictionary containing the current state of the controls.
+	Returns:
+		bool - True if controls were updated successfully, False otherwise.
+	Explanation:
+		Takes the latest control state, held in a dictionary that corresponds with the settings file given for the system (see SystemXMLSyntax) and saves it for later use.
+
+get_framerate
+	Arguments:
+		None
+	Returns:
+		num - the expected screen refresh rate of the loaded core and program.
+	Explanation:
+		Get's the expected screen refresh rate of the loaded core and program.
+
+check_core
+	Arguments:
+		None
+	Returns:
+		bool - True if core is loaded, False otherwise
+	Explanation:
+		Check whether a valid core has been loaded or not.
+
+get_save_state_data
+	Arguments:
+		None
+	returns:
+		Numpy ndarray containing the resumable state of the system. None if no state can be achieved.
+	Explanation:
+		get a resumable system state that can be recalled at a later date.
+
+load_state
+	Arguments:
+		Numpy ndarray containing the state to restore
+	Returns:
+		Nothing
+	Explanation:
+		Take in a state and restore the system to that state
+
+save_data
+	Argments:
+		None
+	Returns:
+		Nothing
+	Explanation:
+		Saves any non volatile memory to a file reachable by the system, within the program or patch folder.
