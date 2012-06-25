@@ -5,6 +5,7 @@ import pyglet
 from pyglet import gl
 import time
 #from pyglet.gl import *
+import xml.etree.ElementTree as ET
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from pyglet.gl import Config, gl_info, glu_info
@@ -12,6 +13,7 @@ import sys
 import numpy
 import Globals
 from OpenGL.GL.shaders import *
+import pygletGLSL
 if sys.platform in ('win32','cygwin'):
   from pyglet.window.win32 import _user32
   from pyglet.gl import wgl
@@ -108,6 +110,14 @@ class GtkGlDrawingArea(Gtk.DrawingArea):
         self.set_double_buffered(0)
         self.connect('draw', self.expose)
         self.connect('configure-event', self.configure)
+        #Shader Code
+        '''with open("Shaders/Scale2x.OpenGL.shader") as shaderfile:
+            shaderxml = ET.XML(shaderfile.read())
+        language = shaderxml.get("language")
+        frags = shaderxml.findall("fragment")
+        vertexes = shaderxml.findall("vertex")
+        shader = pygletGLSL.Shader([frags[0].text],[vertexes[0].text])'''
+        
     def update_texture(self,data,width,height, pitch, dataformat):
         self.inheight = height
         self.inwidth = width

@@ -1,4 +1,4 @@
-from gi.repository import GtkClutter as cluttergtk #@UnresolvedImport   # must be the first to be imported
+#from gi.repository import GtkClutter as cluttergtk #@UnresolvedImport   # must be the first to be imported
 from gi.repository import Gtk, Gdk #@UnresolvedImport
 from gi.repository import GObject
 import Globals
@@ -11,7 +11,7 @@ import multiprocessing
 
 from Windows import MainWindow#@UnresolvedImport
 from Windows import ErrorPopupWindow#@UnresolvedImport
-cluttergtk.init(sys.argv)
+#cluttergtk.init(sys.argv)
 import SettingsCheck
 from functools import partial
 import Callbacks
@@ -243,8 +243,11 @@ class System(object):
 
 class GSEF(object):
     def __init__(self):
+        
         #Create data directories. Included in windows even though 
         #the project won't work in windows yet
+        
+        
         self.frames= 0
         self.oldtime = 0
         SettingsXML = self.Get_Settings()
@@ -252,7 +255,6 @@ class GSEF(object):
         self.window = MainWindow()
         self.ErrorMsg = None
         self.system = None
-        self.rewinding = False
         Globals.load_game = partial(self.load_game,self)
         Globals.load_game = self.load_game
         Globals.Mainwindow = self.window

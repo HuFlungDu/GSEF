@@ -180,6 +180,7 @@ class ControlsWindow(Gtk.Window):
         treeView = ControlTree()
         syscombobox.connect("changed",self.System_Box_Changed, controltrees, treeView)
         treeView.connect("row-activated", self.SetControl)
+        self.System_Box_Changed(syscombobox,controltrees,treeView)
         scrolledwindow.add(treeView)
         mainvbox.pack_start(syscombobox,False,False,5)
         mainvbox.pack_start(scrolledwindow,True,True,5)
