@@ -1,0 +1,45 @@
+GSEF - A Generic System Emulator Frontend
+v0.01 Alpha
+
+This project exists for the purpose of taking the pressure of UI development away from the emulator core developers, allowing all emulators to be run as plugins through a single, familiar interface. The project is currently only released in an alpha stage and is far from finished.
+
+Dependencies:
+	Python 2.7 (http://www.python.org/download/)
+	Linux OS (Will be ported to windows and mac after first release)
+	Pyglet (http://www.pyglet.org/download.html)
+	PyMouse (https://github.com/pepijndevos/PyMouse)
+	Gtk3 with GObject Introspection (http://www.gtk.org/download/index.php)
+	Pygame (http://www.pygame.org/news.html)
+	PyOpenGL (http://pyopengl.sourceforge.net/)
+	Cython and GCC (To compile the xordiff module)
+	PyAudio (http://people.csail.mit.edu/hubert/pyaudio/)
+	Numpy (http://numpy.scipy.org/)
+
+How to:
+	After installing all dependencies, navigate to src/xordiff/Cython and run the command:
+	"python setup.py build_ext --inplace", no quotes, replace "python" with the name of your Python 2.7 executable.
+	Move the resulting "_xordiff.so" file up one directory, to src/xordiff
+	Start the program with the command "python src/Main.py", again replacing "python" with your 2.7 executable
+	Download some systems and cores. I have included some systems and cores under Systems. Install the system following the below instructions, and do the same with the relevant cores.
+	Install your games, then run them (described below)
+
+
+Install a system:
+	Get the archive for the system you want to install *Do not unpack it*.
+	In the program, choose "Install System" in the "System" dropdown menu. Assuming it worked correctly, a popup window will tell you your system was installed correctly, or else it will give an error
+
+Install a core:
+	Identical to installing a system, except choose "Install Core" from the dropdown menu instead"
+
+Make a game or program:
+	Get your main program file (If it's a number of files, compress them all into a single archive, the core will know what to do with them)
+	In the program, under the "Game" dropdown menu, choose the "Make Game" option
+	Type in a game name, choose a system, and choose a core to use. Use the button to choose your game file, a file navigator will appear.
+	Choose "Make Game". A popup will tell you if it was installed or if there were any errors.
+
+Play a game:
+	Counter intuitively, the play game button doesn't let you play a game. Instead, choose "Manage Games" and the "Game" menu
+	Navigate to the system you want in the tree view 
+	Select the game you want then press the "Play Game" button, or double click the game you want
+
+
