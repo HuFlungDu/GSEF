@@ -55,6 +55,7 @@ DefaultSettings = '''<Settings>
 class System(object):
     def __init__(self,name):
         self.rewinding = False
+        self.turbo = False
         self.name = name
         self.core = None
         self._gamepath = None
@@ -306,13 +307,8 @@ class GSEF(object):
         self.window.connect("delete-event", self.on_kill)
         self.window.connect("destroy", self.on_kill)
         self.window.show_all()
-        
-        self.framequeue = multiprocessing.Queue()
-        childpipe ,self.loopingpipe = multiprocessing.Pipe()
-        frameprocess = multiprocessing.Process(target = self.Frame_Thread,args=(self.framequeue,childpipe))
-        frameprocess.start()
         Globals.Hotkeys = self.generateControls(Globals.SettingsXML.find("Hotkeys"))
-        GObject.timeout_add(16,self.on_idle)
+        self.timeout = GObject.timeout_add(16,self.runframe)
         
     def on_kill(self, *args):
         if Globals.system:
@@ -320,7 +316,7 @@ class GSEF(object):
             Globals.system = None
         Gtk.main_quit()
         
-    def on_idle(self):
+    def runframe(self):
         
         if Globals.system and Globals.Hotkeys["Rewind"].get_state() and len(Globals.StateSizes):
             Globals.system.rewinding = True
@@ -354,65 +350,30 @@ class GSEF(object):
         pygame.event.pump()
         Globals.OldJoystickStates = Globals.JoystickStates
         Globals.JoystickStates = []
+    
         for joystick in Globals.Joysticks:
             Buttons = []
             Axes = []
-            for i in range(0, joystick.get_numaxes()):
+            Hats = []
+            for i in xrange(0, joystick.get_numaxes()):
                 Axes.append(joystick.get_axis(i))
-            for i in range(0, joystick.get_numbuttons()):
+            for i in xrange(0, joystick.get_numhats()):
+                Hats.append(joystick.get_hat(i))
+            for i in xrange(0, joystick.get_numbuttons()):
                 Buttons.append(joystick.get_button(i))
-            Globals.JoystickStates.append({"Buttons":Buttons,"Axes":Axes})
+            Globals.JoystickStates.append({"Buttons":Buttons,"Axes":Axes, "Hats": Hats})
+        
             
-            
-        frames = 0
         if Globals.system and Globals.system.running:
-            if not self.framequeue.empty():
-                self.framequeue.get()
-                frames += 1
-    
-            if frames:
-                Globals.system.run_frame()
-                self.frames += 1
-                if int(time.time()) != self.oldtime:
-                    self.framerate = self.frames
-                    self.frames = 0
-                    self.window.FPSlabel.set_text("FPS: {}".format(self.framerate))
-                self.oldtime = int(time.time())
+            Globals.system.run_frame()
+            self.frames += 1
+            if int(time.time()) != self.oldtime:
+                self.framerate = self.frames
+                self.frames = 0
+                self.window.FPSlabel.set_text("FPS: {}".format(self.framerate))
+            self.oldtime = int(time.time())
 
         return True
-            
-            
-    
-    def Frame_Thread(self, framequeue, pipe):
-        variables = ["framerate", "running", "framestart"]
-        framerate = 0
-        running = False
-        framestart = datetime.datetime.now()
-        while (True):
-            if pipe.poll():
-                #Commands come in a tuple, first comes the command as a string
-                #After that is the arguments required by that command
-                command = pipe.recv()
-                cmdstring = command[0]
-                if cmdstring == "set":
-                    variable = command[1]
-                    value = command[2]
-                    if variable in variables:
-                        exec("{}=value".format(variable))
-                elif cmdstring == "kill":
-                    break
-            if running:
-                if framerate > 0:
-                    difference = datetime.datetime.now()-framestart
-                    while difference.microseconds/1000 >= 1000/framerate:
-                        framestart += datetime.timedelta(milliseconds=1000/framerate)
-                        difference = datetime.datetime.now()-framestart
-                        framequeue.put("Run")
-            if framerate:
-                time.sleep(((1000/framerate)/2)/100.0)
-            else:
-                time.sleep(1)  
-        
     
     def Get_Games(self):
         ValidGames = False
@@ -560,7 +521,7 @@ class GSEF(object):
             SettingsFile.write(ET.tostring(Globals.SettingsXML))
         with open(Globals.DataDir+"Games/Games.xml", "w") as GamesFile:
             GamesFile.write(ET.tostring(Globals.GamesXML))
-        self.loopingpipe.send(("kill",))
+        #self.loopingpipe.send(("kill",))
     
     def load_game(self,systemname,corename,gamename,patchname):
         Globals.StateData = []
@@ -589,12 +550,9 @@ class GSEF(object):
         Globals.system.update_controls(Globals.Controls)
         Globals.system.load_game(gamepath,patchpath,patcher)
         framerate = Globals.system.get_framerate()
-        self.loopingpipe.send(("set","framerate",framerate))
-        self.loopingpipe.send(("set","framestart",datetime.datetime.now()))
-        self.loopingpipe.send(("set","running",True))
         self.window.statusLabel.add_text_timer("Loaded {}".format(gamename), 3000)
-        
-        #GObject.timeout_add( 1000/60, Globals.system.run_frame)
+        GObject.source_remove(self.timeout)
+        self.timeout = GObject.timeout_add(int(1000//Globals.system.get_framerate()),self.runframe)
         
     def generateControls(self,XMLItem):
         def generateControlsR(XMLItem, parent=None):

@@ -26,7 +26,7 @@ class ConfirmationDialog(Gtk.Dialog):
 class ButtonEvent(object):
     '''
     "Pad" is the gamepad number 
-    "Button" says whether it's a button or an axis, 1 is button, 0 is axis
+    "Button" says whether it's a button, axis, or hat, 1 is button, 0 is axis, 2 is hat
     "Num" is the button or pad number
     '''
     def __init__(self,Pad,Button,Num, Value):
@@ -59,19 +59,24 @@ class ControlDialog(Gtk.Dialog):
         GObject.timeout_add(16,self.on_idle)
         
     def on_idle(self):
-        if Globals.JoystickStates:
-            for i, joystick in enumerate(Globals.JoystickStates):
-                for j, button in enumerate(joystick["Buttons"]):
-                    if button != 0:
-                        event = ButtonEvent(i,1,j,button)
-                        self.emit("joypad-action-event",event)
-                        return False
-                for j, axis in enumerate(joystick["Axes"]):
-                    if axis != 0:
-                        event = ButtonEvent(i,0,j,axis)
-                        self.emit("joypad-action-event",event)
-                        return False
-        return True
+            if Globals.JoystickStates:
+                for i, joystick in enumerate(Globals.JoystickStates):
+                    for j, button in enumerate(joystick["Buttons"]):
+                        if button != 0:
+                            event = ButtonEvent(i,1,j,button)
+                            self.emit("joypad-action-event",event)
+                            return False
+                    for j, hat in enumerate(joystick["Hats"]):
+                        if hat != 0:
+                            event = ButtonEvent(i,2,j,hat)
+                            self.emit("joypad-action-event",event)
+                            return False
+                    for j, axis in enumerate(joystick["Axes"]):
+                        if axis != 0:
+                            event = ButtonEvent(i,0,j,axis)
+                            self.emit("joypad-action-event",event)
+                            return False
+            return True
 
         
 '''class ErrorPopupWindow(Gtk.Window):
