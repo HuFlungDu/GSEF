@@ -212,11 +212,13 @@ class ControlsWindow(Gtk.Window):
             
     def ButtonPress(self,widget,event,mapping):
         joypad = event.Pad
-        button = ["Axis","Button"][event.Button]
+        button = ["Axis","Button","Hat"][event.Button]
         buttonnum = event.Num
         value = event.Value
-        if event.Button:
+        if event.Button == 1:
             cmd = "JP{}::{} {}".format(joypad,button,buttonnum)
+        elif event.Button == 2:
+            cmd = "JP{}::{} {} {}".format(joypad,button,buttonnum, ["up","down","left","right"][value])
         else:
             cmd = "JP{}::{} {} {}".format(joypad,button, buttonnum, "Positive" if value > 0 else "Negative")
         mapping.set("Mapping",cmd)

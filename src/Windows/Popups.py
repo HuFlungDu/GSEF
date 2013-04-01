@@ -67,8 +67,16 @@ class ControlDialog(Gtk.Dialog):
                             self.emit("joypad-action-event",event)
                             return False
                     for j, hat in enumerate(joystick["Hats"]):
-                        if hat != 0:
-                            event = ButtonEvent(i,2,j,hat)
+                        if hat != (0,0):
+                            if hat[0] == -1:
+                                value = 2
+                            elif hat[0] == 1:
+                                value = 3
+                            elif hat[1] == -1:
+                                value = 1
+                            elif hat[1] == 1:
+                                value = 0
+                            event = ButtonEvent(i,2,j,value)
                             self.emit("joypad-action-event",event)
                             return False
                     for j, axis in enumerate(joystick["Axes"]):

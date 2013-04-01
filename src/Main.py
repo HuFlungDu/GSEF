@@ -174,6 +174,33 @@ class System(object):
                             self.clearControl(cmd.replace("Negative","Positive"),Globals.Controls)
                             self.clearControl(cmd,Globals.Hotkeys)
                             self.clearControl(cmd.replace("Negative","Positive"),Globals.Hotkeys)
+                for j, (hat, oldhat) in enumerate(zip(joystick["Hats"],oldjoystick["Hats"])):
+                    if hat != oldhat:
+                        lrsetcmd = "JP{}::Hat {} {}".format(i, j, "left" if hat[0] == -1 else "right")
+                        lrclearcmd = "JP{}::Hat {} {}".format(i, j, "right" if hat[0] == -1 else "left")
+                        udsetcmd = "JP{}::Hat {} {}".format(i, j, "down" if hat[1] == -1 else "up")
+                        udclearcmd = "JP{}::Hat {} {}".format(i, j, "up" if hat[1] == -1 else "down")
+                        if hat[0] != 0:
+                            self.setControl(lrsetcmd,Globals.Controls,1)
+                            self.setControl(lrsetcmd,Globals.Hotkeys,1)
+                            self.clearControl(lrclearcmd,Globals.Controls)
+                            self.clearControl(lrclearcmd,Globals.Hotkeys)
+                        else:
+                            self.clearControl("JP{}::Hat {} left".format(i, j),Globals.Controls)
+                            self.clearControl("JP{}::Hat {} left".format(i, j),Globals.Hotkeys)
+                            self.clearControl("JP{}::Hat {} right".format(i, j),Globals.Controls)
+                            self.clearControl("JP{}::Hat {} right".format(i, j),Globals.Hotkeys)
+                            
+                        if hat[1] != 0:
+                            self.setControl(udsetcmd,Globals.Controls,1)
+                            self.setControl(udsetcmd,Globals.Hotkeys,1)
+                            self.clearControl(udclearcmd,Globals.Controls,1)
+                            self.clearControl(udclearcmd,Globals.Hotkeys,1)
+                        else:
+                            self.clearControl("JP{}::Hat {} up".format(i, j),Globals.Controls)
+                            self.clearControl("JP{}::Hat {} up".format(i, j),Globals.Hotkeys)
+                            self.clearControl("JP{}::Hat {} down".format(i, j),Globals.Controls)
+                            self.clearControl("JP{}::Hat {} down".format(i, j),Globals.Hotkeys)
             Globals.system.update_controls(Globals.Controls)
          
         if self.CheckForMapping("Mouse-X", Globals.Controls) or self.CheckForMapping("Mouse-Y",Globals.Controls):

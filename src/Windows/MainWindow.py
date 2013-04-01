@@ -114,6 +114,7 @@ class MainWindow(Gtk.Window):
     </menu>
     <menu action='SettingsMenu'>
       <menuitem action='Settings_Controls' />
+      <menuitem action='Settings_Calibrate' />
       <menuitem action='Settings_AspectRatio' />
     </menu>
   </menubar>
@@ -287,6 +288,10 @@ class MainWindow(Gtk.Window):
         action_Controls.connect("activate", self.on_menu_controls)
         action_group.add_action(action_Controls)
         
+        action_Controls = Gtk.Action("Settings_Calibrate", "Calibrate joysticks", None, None)
+        action_Controls.connect("activate", self.on_menu_calibrate)
+        action_group.add_action(action_Controls)
+        
         action_AspectRatio = Gtk.ToggleAction("Settings_AspectRatio", "Keep Correct Aspect Ratio", None, None)
         if Globals.SettingsXML.find("AspectRatio").get("keep") == "True":
             action_AspectRatio.set_active(True)
@@ -435,12 +440,20 @@ class MainWindow(Gtk.Window):
             GameMakerWindow.show_all()
 
     def on_menu_manage_games(self, widget):
+        print "manage games"
         if not Globals.OpenWindows & Globals.WINDOWTYPE_MANAGEGAMES:
             ManagerWindow = ManageGamesWindow()
             ManagerWindow.set_transient_for(self)
             ManagerWindow.show_all()
         
     def on_menu_controls(self,widget):
+        if not Globals.OpenWindows & Globals.WINDOWTYPE_CONTROLS:
+            controlsWindow = ControlsWindow()
+            controlsWindow.set_transient_for(self)
+            controlsWindow.show_all()
+            
+    def on_menu_calibrate(self,widget):
+        return
         if not Globals.OpenWindows & Globals.WINDOWTYPE_CONTROLS:
             controlsWindow = ControlsWindow()
             controlsWindow.set_transient_for(self)
