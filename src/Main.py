@@ -47,9 +47,9 @@ DefaultSettings = '''<Settings>
         <Button Mapping="None" name="Hard Reset" />
         <Button Mapping="None" name="Soft Reset" />
     </Hotkeys>
-    <Rewind Frames="1" Size="1" Enabled="True" />
+    <Rewind Frames="1" Size="1" Enabled="True" Compress="True"/>
 </Settings>'''
-    
+
 #Main class for the project
 
 class System(object):
@@ -103,23 +103,23 @@ class System(object):
         self.system.load_game(gamepath, gamefile, patchpath, patcher)
     def unload_core(self):
         self.system.unload_core()
-        
+
     def serialize(self):
         return self.system.get_save_state_data()
-    
+
     def unserialize(self,data):
         self.system.load_state(data)
-    
+
     def save_state(self, statename):
         savedata = self.system.get_save_state_data()
         with open("{}savestates/{}".format(self._gamepath,statename),'w') as savefile:
             savefile.write(savedata)
-            
+
     def load_state(self,statename):
         with open("{}savestates/{}".format(self._gamepath,statename),'r') as savefile:
             savedata = savefile.read()
         self.system.load_state(savedata)
-        
+
     def toggle_pause(self):
         if self.running:
             self.running = False
@@ -127,10 +127,10 @@ class System(object):
         else:
             self.running = True
             self.stream.start_stream()
-    
+
     def toggle_power(self):
         pass
-    
+
     def setControl(self,control, dic, value):
         for i in dic:
             try:
@@ -139,7 +139,7 @@ class System(object):
                         dic[i].set_state(1)
                     else:
                         dic[i].set_state(round(dic[i].get_sensitivity()*value))
-                    
+
             except AttributeError:
                 self.setControl(control, dic[i],value)
     def clearControl(self,control, dic):
@@ -147,10 +147,10 @@ class System(object):
             try:
                 if dic[i].get_mapping() == control.split("+")[-1]:
                     dic[i].set_state(0)
-                    
+
             except AttributeError:
                 self.clearControl(control, dic[i])
-    
+
     def poll_input(self):
         if Globals.JoystickStates:
             for i, (joystick, oldjoystick) in enumerate(zip(Globals.JoystickStates,Globals.OldJoystickStates)):
@@ -190,7 +190,7 @@ class System(object):
                             self.clearControl("JP{}::Hat {} left".format(i, j),Globals.Hotkeys)
                             self.clearControl("JP{}::Hat {} right".format(i, j),Globals.Controls)
                             self.clearControl("JP{}::Hat {} right".format(i, j),Globals.Hotkeys)
-                            
+
                         if hat[1] != 0:
                             self.setControl(udsetcmd,Globals.Controls,1)
                             self.setControl(udsetcmd,Globals.Hotkeys,1)
@@ -202,27 +202,27 @@ class System(object):
                             self.clearControl("JP{}::Hat {} down".format(i, j),Globals.Controls)
                             self.clearControl("JP{}::Hat {} down".format(i, j),Globals.Hotkeys)
             Globals.system.update_controls(Globals.Controls)
-         
+
         if self.CheckForMapping("Mouse-X", Globals.Controls) or self.CheckForMapping("Mouse-Y",Globals.Controls):
-    
+
             MiddleX = Globals.Mainwindow.glArea.get_window().get_origin()[0] + \
                      Globals.Mainwindow.glArea.get_allocated_width()/2
             MiddleY = Globals.Mainwindow.glArea.get_window().get_origin()[1] + \
                      Globals.Mainwindow.glArea.get_allocated_height()/2
-            MouseX = Globals.Mouse.position()[0] - MiddleX         
+            MouseX = Globals.Mouse.position()[0] - MiddleX
             MouseY = Globals.Mouse.position()[1] - MiddleY
-            
+
             Globals.Mouse.move(MiddleX,MiddleY)
-    
+
     def CheckForMapping(self, control, dic):
         for i in dic:
             try:
                 if dic[i].get_mapping() == control:
                     return True
-                    
+
             except AttributeError:
                 return self.CheckForMapping(control, dic[i])
-        
+
     def update_audio(self,samples):
         if self.rewinding:
             start = len(samples)
@@ -240,26 +240,26 @@ class System(object):
             channels = samples[i+slicestart:i+sliceend]
             if len(channels):
                 self.soundbuf_raw += struct.pack(self.packing, *channels)
-            
+
             if len(self.soundbuf_raw) >= 256:
                 self.stream.write(self.soundbuf_raw)
-                self.soundbuf_raw = ''  
+                self.soundbuf_raw = ''
         return
-        
+
     def update_controls(self,controldic):
         self.system.update_controls(controldic)
-    
+
     def run_frame(self):
         self.system.run_frame()
         return True
         #GObject.timeout_add( 10, self.run_frame)
-        
+
     def get_framerate(self):
         if self.system.check_core():
             return self.system.get_framerate()
         else:
             return -1
-    
+
     def close(self):
         try:
             self.system.save_data()
@@ -267,15 +267,15 @@ class System(object):
             pass
         self.system.close()
         sys.path.remove(Globals.DataDir+"Systems/"+ "System_" + self.name)
-        
+
 
 class GSEF(object):
     def __init__(self):
-        
-        #Create data directories. Included in windows even though 
+
+        #Create data directories. Included in windows even though
         #the project won't work in windows yet
-        
-        
+
+
         self.frames= 0
         self.oldtime = 0
         SettingsXML = self.Get_Settings()
@@ -289,7 +289,7 @@ class GSEF(object):
         Globals.Mouse = PyMouse()
         Globals.Joysticks = [pygame.joystick.Joystick(i) for i in xrange(pygame.joystick.get_count())]
         [i.init() for i in Globals.Joysticks]
-        
+
         if not os.path.isdir(Globals.DataDir+"temp"):
             os.mkdir(Globals.DataDir+"temp")
         if not os.path.isdir(Globals.DataDir+"Systems"):
@@ -298,7 +298,7 @@ class GSEF(object):
             os.mkdir(Globals.DataDir+"Games")
         SystemSettingsTree = {("",1,("name",), SettingsCheck.SystemExistSanityCheck): None}
         CoreSettingsTree = {("",1,("name","system"),SettingsCheck.CoreNameSanityCheck) : None}
-        
+
         for i in os.listdir(Globals.DataDir+"Systems"):
             if os.path.isdir(Globals.DataDir+"Systems/"+i):
                 try:
@@ -313,22 +313,22 @@ class GSEF(object):
                                     with open(Globals.DataDir+"Systems/"+i+"/" + j + "/core.xml",'r') as settingsfile:
                                         CoreXML = ET.XML(settingsfile.read())
                                     if SettingsCheck.check_settings(CoreSettingsTree, CoreXML):
-                                        Globals.Cores.append(i[7:]+"/"+j[5:])                                    
+                                        Globals.Cores.append(i[7:]+"/"+j[5:])
                                 except:
                                     pass
                 except:
                     pass
-        
+
         self.systemrunning=False
-        
+
         GamesXML = self.Get_Games()
-               
-        
+
+
         Globals.GamesXML = GamesXML
-        
+
         Globals.Update_Games()
         Globals.WindowHeight = int(Globals.SettingsXML.find("Window").get("height"))
-        Globals.WindowWidth = int(Globals.SettingsXML.find("Window").get("width"))        
+        Globals.WindowWidth = int(Globals.SettingsXML.find("Window").get("width"))
         self.window.set_default_size(Globals.WindowWidth, Globals.WindowHeight)
         self.window.connect('check-resize', self.Window_Size_Changed)
         self.window.connect("delete-event", self.on_kill)
@@ -336,18 +336,18 @@ class GSEF(object):
         self.window.show_all()
         Globals.Hotkeys = self.generateControls(Globals.SettingsXML.find("Hotkeys"))
         self.timeout = GObject.timeout_add(16,self.runframe)
-        
+
     def on_kill(self, *args):
         if Globals.system:
             Globals.system.close()
             Globals.system = None
         Gtk.main_quit()
-        
+
     def runframe(self):
-        
+
         if Globals.system and Globals.Hotkeys["Rewind"].get_state() and len(Globals.StateSizes):
             Globals.system.rewinding = True
-            
+
             Globals.system.unserialize(Globals.StateData[0])
             if len(Globals.StateData) > 1:
                 if isinstance(Globals.StateData[1], xordiff.numpyxor):
@@ -356,7 +356,7 @@ class GSEF(object):
             del(Globals.StateData[0])
             del(Globals.StateSizes[0])
         elif Globals.system:
-            Globals.system.rewinding = False 
+            Globals.system.rewinding = False
         rewind = Globals.SettingsXML.find("Rewind")
         if rewind.get("Enabled") == "True" and Globals.system and not Globals.system.rewinding:
             frames = int(rewind.get("Frames"))
@@ -372,12 +372,12 @@ class GSEF(object):
                 while sum(Globals.StateSizes) > size*1048576:
                     Globals.StateData.pop()
                     Globals.StateSizes.pop()
-            
-            
+
+
         pygame.event.pump()
         Globals.OldJoystickStates = Globals.JoystickStates
         Globals.JoystickStates = []
-    
+
         for joystick in Globals.Joysticks:
             Buttons = []
             Axes = []
@@ -389,8 +389,8 @@ class GSEF(object):
             for i in xrange(0, joystick.get_numbuttons()):
                 Buttons.append(joystick.get_button(i))
             Globals.JoystickStates.append({"Buttons":Buttons,"Axes":Axes, "Hats": Hats})
-        
-            
+
+
         if Globals.system and Globals.system.running:
             Globals.system.run_frame()
             self.frames += 1
@@ -401,7 +401,7 @@ class GSEF(object):
             self.oldtime = int(time.time())
 
         return True
-    
+
     def Get_Games(self):
         ValidGames = False
         GamesXML = None
@@ -411,34 +411,34 @@ class GSEF(object):
             ValidGames = True
         except IOError:
             pass
-        
+
         #Description to follow through the settings tree for testing sanity
-        GamesTree = {("System",0,("name",),SettingsCheck.SystemExistSanityCheck) : 
-                        {("Game",0,("name",),SettingsCheck.GameNameSanityCheck): 
+        GamesTree = {("System",0,("name",),SettingsCheck.SystemExistSanityCheck) :
+                        {("Game",0,("name",),SettingsCheck.GameNameSanityCheck):
                             {("Patch",0,("name",),SettingsCheck.PatchNameSanityCheck):None}
                         }
                     }
         GameTree = {("",1,("name","core","filename","system"),SettingsCheck.GameSettingsSanityCheck) :
-                        {("Controls",1,("inherit",),None): None                            
+                        {("Controls",1,("inherit",),None): None
                         }
                     }
         PatchSanityLam = lambda game,name,format,filename,system: os.path.isfile(Globals.DataDir+"Games/"+system+"/"+game+"/patches/"+name+"/"+filename)
         PatchTree = {("",1,("game","name","format","filename","system"),PatchSanityLam) :
-                        {("Controls",1,("inherit",),None): None                            
+                        {("Controls",1,("inherit",),None): None
                         }
                     }
-        
+
         #Make sure the settings file is valid XML
         if ValidGames:
             try:
                 GamesXML = ET.XML(GamesText)
             except ET.ParseError:
                 ValidGames = False
-        
+
         #Validate the the settings use sane values
         if ValidGames:
             ValidGames = SettingsCheck.check_settings(GamesTree,GamesXML)
-            
+
         #If the games XML file isn't sane, repopulate it manually
         if not ValidGames:
             popup = ErrorPopupWindow("Games not found","Game definitions not found, repopulating manually")
@@ -477,10 +477,10 @@ class GSEF(object):
                             SystemXML.append(GameXML)
                     except:
                         pass
-                GamesXML.append(SystemXML)        
+                GamesXML.append(SystemXML)
         return GamesXML
-        
-    
+
+
     def Get_Settings(self):
         ValidSettings = False
         SettingsXML = None
@@ -489,10 +489,11 @@ class GSEF(object):
                 SettingsText = SettingsFile.read()
             ValidSettings = True
         except IOError:
-            pass
-        
+            SettingsText = DefaultSettings
+            ValidSettings = True
+
         #Description to follow through the settings tree for testing sanity
-        SettingsTree = {("Paths",1,(),None) : 
+        SettingsTree = {("Paths",1,(),None) :
                             {("LastAccessedSystem",1,("path",),SettingsCheck.DirectoryPathSanityCheck):None,
                              ("LastAccessedCore",1,("path",),SettingsCheck.DirectoryPathSanityCheck):None
                             },
@@ -501,7 +502,7 @@ class GSEF(object):
                         ("Hotkeys",1,(),None) : {("Button",9,("Mapping","name"),None) : None},
                         ("Rewind",1,("Frames","Size","Enabled","Compress"), lambda f, s, e, c: f.isdigit() and s.isdigit() and (e == "False" or e == "True") and (c == "False" or c == "True")) : None
                         }
-        
+
         SettingsXML = ET.XML(SettingsText)
         #Make sure the settings file is valid XML
         if ValidSettings:
@@ -509,11 +510,11 @@ class GSEF(object):
                 SettingsXML = ET.XML(SettingsText)
             except ET.ParseError:
                 ValidSettings = False
-        
+
         #Validate the the settings use sane values
         if ValidSettings:
             ValidSettings = SettingsCheck.check_settings(SettingsTree,SettingsXML)
-        
+
         #If the settings aren't sane, replace them with the standard settings
         #May change later to only replace the parts that are not sane
         if not ValidSettings:
@@ -526,8 +527,8 @@ class GSEF(object):
             except:
                 self.ErrorMsg = "Failed to write to settings file"
         return SettingsXML
-         
-    
+
+
     #When the window resizes, we need to change the preferred window size to that
     #That way when they come back, the window will be the same size
     def Window_Size_Changed(self,window):
@@ -537,10 +538,10 @@ class GSEF(object):
         windowxml = Globals.SettingsXML.find("Window")
         windowxml.set("width",str(size[0]))
         windowxml.set("height",str(size[1]))
-    
-    
-   
-    
+
+
+
+
     def Run(self):
         Gtk.main()
         #Write out the changed settings, however they were changed
@@ -549,7 +550,7 @@ class GSEF(object):
         with open(Globals.DataDir+"Games/Games.xml", "w") as GamesFile:
             GamesFile.write(ET.tostring(Globals.GamesXML))
         #self.loopingpipe.send(("kill",))
-    
+
     def load_game(self,systemname,corename,gamename,patchname):
         Globals.StateData = []
         Globals.StateSizes = []
@@ -569,10 +570,10 @@ class GSEF(object):
             with open(sysxmlpath,'r') as controlxmlfile:
                 controlxml = ET.XML(controlxmlfile.read())
         controlxml = controlxml.find("Controls")
-        
+
         Globals.Hotkeys = self.generateControls(Globals.SettingsXML.find("Hotkeys"))
         Globals.Controls = self.generateControls(controlxml)
-        
+
         patcher = None #Add patch stuff later
         Globals.system.update_controls(Globals.Controls)
         Globals.system.load_game(gamepath,patchpath,patcher)
@@ -580,7 +581,7 @@ class GSEF(object):
         self.window.statusLabel.add_text_timer("Loaded {}".format(gamename), 3000)
         GObject.source_remove(self.timeout)
         self.timeout = GObject.timeout_add(int(1000//Globals.system.get_framerate()),self.runframe)
-        
+
     def generateControls(self,XMLItem):
         def generateControlsR(XMLItem, parent=None):
             if XMLItem.get("Mapping"):
@@ -588,7 +589,7 @@ class GSEF(object):
                 if XMLItem.get("type") == "Digital":
                     digital = True
                 return Control(XMLItem.get("Mapping"), XMLItem.tag, XMLItem.get("name"), digital)
-    
+
             controls = {}
             for i in list(XMLItem):
                 controls[i.get('name')] = generateControlsR(i)
@@ -597,8 +598,8 @@ class GSEF(object):
         for i in list(XMLItem):
             controls[i.get("name")] = generateControlsR(i)
         return controls
-    
-    
+
+
 class Control(object):
     def __init__(self,mapping, ctype, name, digital, sensitivity = 1):
         self.__name = name
@@ -607,36 +608,36 @@ class Control(object):
         self.__mapping = mapping
         self.__state = 0
         self.__sensitivity = sensitivity
-        
+
     def __repr__(self):
         return self.__str__()
-    
-        
+
+
     def __str__(self):
         return "<Control Name: {0}, Mapping: {1}, Type: {2}, State: {3}>".format(self.__name,self.__mapping, self.__ctype, self.__state)
-    
+
     def set_state(self,state):
         self.__state = state
-    
+
     def get_state(self):
         return self.__state
-    
+
     def get_type(self):
         return self.__ctype
 
     def get_name(self):
         return self.__name
-    
+
     def get_mapping(self):
         return self.__mapping
-    
+
     def get_digital(self):
         return self.__digital
-    
+
     def get_sensitivity(self):
         return self.__sensitivity
 
-    
+
 if __name__ == "__main__":
 
     Program = GSEF()
@@ -648,4 +649,3 @@ if __name__ == "__main__":
         popup.connect("destroy", Gtk.main_quit)
         popup.show_all()
         Gtk.main()
-        

@@ -4,7 +4,7 @@ class game(object):
     def __init__(self,name,core):
         self.name = name
         self.core = core
-        
+
     def __str__(self):
         return self.name
 if os.name != "posix":

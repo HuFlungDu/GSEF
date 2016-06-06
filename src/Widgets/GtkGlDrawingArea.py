@@ -13,7 +13,7 @@ import sys
 import numpy
 import Globals
 from OpenGL.GL.shaders import *
-import pygletGLSL
+#import pygletGLSL
 if sys.platform in ('win32','cygwin'):
   from pyglet.window.win32 import _user32
   from pyglet.gl import wgl
@@ -41,11 +41,11 @@ def MakeBuffer(target, data, size):
     return TempBuffer
 
 class BoxedLabel(pyglet.text.Label):
-    
-    def __init__(self,text='', font_name=None, font_size=None, 
-                 bold=False, italic=False, color=(255, 255, 255, 255), 
-                 x=0, y=0, width=None, height=None, anchor_x='left', 
-                 anchor_y='baseline', halign='left', multiline=False, 
+
+    def __init__(self,text='', font_name=None, font_size=None,
+                 bold=False, italic=False, color=(255, 255, 255, 255),
+                 x=0, y=0, width=None, height=None, anchor_x='left',
+                 anchor_y='baseline', halign='left', multiline=False,
                  dpi=None, batch=None, group=None, bgcolor=(0,0,0,0)):
         pyglet.text.Label.__init__(self,text,font_name,font_size,bold,italic,color,x,y,width,height,anchor_x,anchor_y,halign,multiline,dpi,batch,group)
         self.begin_update()
@@ -54,8 +54,8 @@ class BoxedLabel(pyglet.text.Label):
         self.end_update()
 
 class ExpandedImageData(pyglet.image.ImageData):
-    
-    
+
+
     def _get_gl_format_and_type(self, format):
         if format == 'I':
             return GL_LUMINANCE, GL_UNSIGNED_BYTE
@@ -92,7 +92,7 @@ class ExpandedImageData(pyglet.image.ImageData):
             return GL_BGRA,GL_UNSIGNED_SHORT_1_5_5_5_REV
 
         return None, None
-    
+
 
 
 class GtkGlDrawingArea(Gtk.DrawingArea):
@@ -117,7 +117,7 @@ class GtkGlDrawingArea(Gtk.DrawingArea):
         frags = shaderxml.findall("fragment")
         vertexes = shaderxml.findall("vertex")
         shader = pygletGLSL.Shader([frags[0].text],[vertexes[0].text])'''
-        
+
     def update_texture(self,data,width,height, pitch, dataformat):
         self.inheight = height
         self.inwidth = width
@@ -125,7 +125,7 @@ class GtkGlDrawingArea(Gtk.DrawingArea):
         self.gameimage = self.gameimage.get_texture()
         self.gameimage = self.gameimage.get_transform(flip_y=True)
         self.queue_draw()
-        
+
         #print self.gameimage.get_texture()
         #self.texture = texture
 
@@ -140,7 +140,7 @@ class GtkGlDrawingArea(Gtk.DrawingArea):
                                 Config(double_buffer=True, depth_size=24),
                                 Config(double_buffer=True, depth_size=16)]:
             try:
-                self.config = self.screen.get_best_config(template_config) 
+                self.config = self.screen.get_best_config(template_config)
                 break
             except pyglet.window.NoSuchConfigException:
                 pass
@@ -182,7 +182,7 @@ font_size=14, font_name='DejaVu Sans Mono',
             self.upperlabel = BoxedLabel('Hello, world',
 font_size=14, font_name='DejaVu Sans Mono',
                                           x=20, y=20, bgcolor = (0,0,0,255))
-            
+
 
     def switch_to(self):
         if sys.platform == 'darwin':
@@ -191,9 +191,9 @@ font_size=14, font_name='DejaVu Sans Mono',
         elif sys.platform in ('win32', 'cygwin'):
             self._dc = _user32.GetDC(self.window.handle)
             self.context._set_window(self)
-            wgl.wglMakeCurrent(self._dc, self.context._context)
+            wgl.wglMakeCurrent(self._dc, self.context.glx_context)
         else:
-            glx.glXMakeCurrent(self.config._display, self.get_property('window').get_xid(),self.context._context)
+            glx.glXMakeCurrent(self.context.x_display, self.get_property('window').get_xid(),self.context.glx_context)
         self.context.set_current()
         gl_info.set_active_context()
         glu_info.set_active_context()
@@ -205,7 +205,7 @@ font_size=14, font_name='DejaVu Sans Mono',
         elif sys.platform in ('win32', 'cygwin'):
             wgl.wglSwapLayerBuffers(self._dc, wgl.WGL_SWAP_MAIN_PLANE)
         else:
-            glx.glXSwapBuffers(self.config._display, self.get_property('window').get_xid())
+            glx.glXSwapBuffers(self.context.x_display, self.get_property('window').get_xid())
 
     def configure(self, d, event):
         self.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.BLANK_CURSOR))
@@ -255,11 +255,11 @@ font_size=14, font_name='DejaVu Sans Mono',
         XPos = width/2 - drawwidth/2
         if self.gameimage:
             self.gameimage.blit(XPos, YPos+225, 0,drawwidth,drawheight)
-            
-        self.upperlabel.text = time.strftime('Now is %H:%M:%S')
-        self.upperlabel.x = width - self.upperlabel.content_width -5
-        self.upperlabel.y = height - self.upperlabel.content_height
-        self.upperlabel.draw()
+
+        #self.upperlabel.text = time.strftime('Now is %H:%M:%S')
+        #self.upperlabel.x = width - self.upperlabel.content_width -5
+        #self.upperlabel.y = height - self.upperlabel.content_height
+        #self.upperlabel.draw()
 
         if self.config.double_buffer:
             self.flip()
