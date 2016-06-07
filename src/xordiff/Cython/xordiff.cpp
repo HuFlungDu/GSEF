@@ -923,26 +923,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
 static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
 
 #define __Pyx_BufPtrStrided1d(type, buf, i0, s0) (type)((char*)buf + i0 * s0)
-/* ListAppend.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
-        Py_INCREF(x);
-        PyList_SET_ITEM(list, len, x);
-        Py_SIZE(list) = len+1;
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
-#endif
-
-/* BufferFallbackError.proto */
-static void __Pyx_RaiseBufferFallbackError(void);
-
 /* PyThreadStateGet.proto */
 #if CYTHON_COMPILING_IN_CPYTHON
 #define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
@@ -1065,10 +1045,7 @@ static Py_ssize_t __Pyx_zeros[] = {0, 0, 0, 0, 0, 0, 0, 0};
 static Py_ssize_t __Pyx_minusones[] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
-
-/* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_npy_ulong(npy_ulong value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_unsigned_int(unsigned int value);
 
 /* None.proto */
 #if CYTHON_CCOMPLEX
@@ -1174,7 +1151,13 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
 #endif
 
 /* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
+
+/* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__NPY_TYPES(enum NPY_TYPES value);
+
+/* CIntFromPy.proto */
+static CYTHON_INLINE unsigned int __Pyx_PyInt_As_unsigned_int(PyObject *);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
@@ -1254,14 +1237,12 @@ static const char __pyx_k_j[] = "j";
 static const char __pyx_k_n1[] = "n1";
 static const char __pyx_k_n2[] = "n2";
 static const char __pyx_k_np[] = "np";
-static const char __pyx_k_off[] = "off";
 static const char __pyx_k_copy[] = "copy";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_size[] = "size";
 static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_uint[] = "uint";
-static const char __pyx_k_array[] = "array";
 static const char __pyx_k_dtype[] = "dtype";
 static const char __pyx_k_empty[] = "empty";
 static const char __pyx_k_n1off[] = "n1off";
@@ -1281,6 +1262,7 @@ static const char __pyx_k_refcheck[] = "refcheck";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_numpyundif[] = "numpyundif";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
+static const char __pyx_k_offsets_size[] = "offsets_size";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static const char __pyx_k_home_josiah_GSEF_src_xordiff_Cy[] = "/home/josiah/GSEF/src/xordiff/Cython/xordiff.pyx";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
@@ -1293,7 +1275,6 @@ static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_ValueError;
-static PyObject *__pyx_n_s_array;
 static PyObject *__pyx_n_s_copy;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_empty;
@@ -1312,8 +1293,8 @@ static PyObject *__pyx_n_s_np;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_n_s_numpyundif;
 static PyObject *__pyx_n_s_numpyxor;
-static PyObject *__pyx_n_s_off;
 static PyObject *__pyx_n_s_offsets;
+static PyObject *__pyx_n_s_offsets_size;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_refcheck;
 static PyObject *__pyx_n_s_resize;
@@ -1328,11 +1309,10 @@ static PyObject *__pyx_n_s_uint;
 static PyObject *__pyx_n_s_uint8;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_xordiff;
-static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_n1, PyArrayObject *__pyx_v_n2, int __pyx_v_size); /* proto */
+static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_n1, PyArrayObject *__pyx_v_n2, unsigned int __pyx_v_size); /* proto */
 static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_n1, PyArrayObject *__pyx_v_n2, PyArrayObject *__pyx_v_offsets); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
-static PyObject *__pyx_int_0;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
@@ -1347,9 +1327,9 @@ static PyObject *__pyx_codeobj__10;
 /* "xordiff.pyx":6
  * 
  * @cython.boundscheck(False)
- * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, int size):             # <<<<<<<<<<<<<<
+ * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
  */
 
 /* Python wrapper */
@@ -1358,7 +1338,7 @@ static PyMethodDef __pyx_mdef_8_xordiff_1numpyxor = {"numpyxor", (PyCFunction)__
 static PyObject *__pyx_pw_8_xordiff_1numpyxor(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_n1 = 0;
   PyArrayObject *__pyx_v_n2 = 0;
-  int __pyx_v_size;
+  unsigned int __pyx_v_size;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("numpyxor (wrapper)", 0);
@@ -1403,7 +1383,7 @@ static PyObject *__pyx_pw_8_xordiff_1numpyxor(PyObject *__pyx_self, PyObject *__
     }
     __pyx_v_n1 = ((PyArrayObject *)values[0]);
     __pyx_v_n2 = ((PyArrayObject *)values[1]);
-    __pyx_v_size = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 6, __pyx_L3_error)
+    __pyx_v_size = __Pyx_PyInt_As_unsigned_int(values[2]); if (unlikely((__pyx_v_size == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 6, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -1426,13 +1406,13 @@ static PyObject *__pyx_pw_8_xordiff_1numpyxor(PyObject *__pyx_self, PyObject *__
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_n1, PyArrayObject *__pyx_v_n2, int __pyx_v_size) {
+static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_n1, PyArrayObject *__pyx_v_n2, unsigned int __pyx_v_size) {
   PyArrayObject *__pyx_v_h = 0;
   PyArrayObject *__pyx_v_retoff = 0;
-  int __pyx_v_i;
-  int __pyx_v_j;
-  int __pyx_v_state;
-  PyObject *__pyx_v_offsets = NULL;
+  unsigned int __pyx_v_i;
+  unsigned int __pyx_v_j;
+  unsigned int __pyx_v_offsets_size;
+  unsigned int __pyx_v_state;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_h;
   __Pyx_Buffer __pyx_pybuffer_h;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_n1;
@@ -1449,21 +1429,20 @@ static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self,
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyArrayObject *__pyx_t_6 = NULL;
-  int __pyx_t_7;
-  size_t __pyx_t_8;
-  size_t __pyx_t_9;
-  int __pyx_t_10;
+  PyArrayObject *__pyx_t_7 = NULL;
+  Py_ssize_t __pyx_t_8;
+  int __pyx_t_9;
+  size_t __pyx_t_10;
   size_t __pyx_t_11;
   size_t __pyx_t_12;
   size_t __pyx_t_13;
   size_t __pyx_t_14;
   size_t __pyx_t_15;
   size_t __pyx_t_16;
-  PyArrayObject *__pyx_t_17 = NULL;
-  int __pyx_t_18;
-  PyObject *__pyx_t_19 = NULL;
-  PyObject *__pyx_t_20 = NULL;
-  PyObject *__pyx_t_21 = NULL;
+  size_t __pyx_t_17;
+  size_t __pyx_t_18;
+  size_t __pyx_t_19;
+  size_t __pyx_t_20;
   __Pyx_RefNannySetupContext("numpyxor", 0);
   __pyx_pybuffer_h.pybuffer.buf = NULL;
   __pyx_pybuffer_h.refcount = 0;
@@ -1494,17 +1473,17 @@ static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self,
 
   /* "xordiff.pyx":7
  * @cython.boundscheck(False)
- * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, int size):
+ * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):
  *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
- *     cdef int i = 0, j = 0, state = 0
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
+ *     cdef unsigned int i = 0, j = 0, offsets_size = 1, state = 0
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -1539,49 +1518,93 @@ static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_v_h = ((PyArrayObject *)__pyx_t_5);
   __pyx_t_5 = 0;
 
+  /* "xordiff.pyx":8
+ * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):
+ *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)             # <<<<<<<<<<<<<<
+ *     cdef unsigned int i = 0, j = 0, offsets_size = 1, state = 0
+ *     retoff[0] = 0
+ */
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __Pyx_PyInt_From_unsigned_int(__pyx_v_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
+  __pyx_t_5 = 0;
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_uint); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 8, __pyx_L1_error)
+  __pyx_t_7 = ((PyArrayObject *)__pyx_t_4);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_retoff.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
+      __pyx_v_retoff = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_retoff.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 8, __pyx_L1_error)
+    } else {__pyx_pybuffernd_retoff.diminfo[0].strides = __pyx_pybuffernd_retoff.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_retoff.diminfo[0].shape = __pyx_pybuffernd_retoff.rcbuffer->pybuffer.shape[0];
+    }
+  }
+  __pyx_t_7 = 0;
+  __pyx_v_retoff = ((PyArrayObject *)__pyx_t_4);
+  __pyx_t_4 = 0;
+
   /* "xordiff.pyx":9
  *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
- *     cdef int i = 0, j = 0, state = 0             # <<<<<<<<<<<<<<
- *     offsets = [0]
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
+ *     cdef unsigned int i = 0, j = 0, offsets_size = 1, state = 0             # <<<<<<<<<<<<<<
+ *     retoff[0] = 0
  * 
  */
   __pyx_v_i = 0;
   __pyx_v_j = 0;
+  __pyx_v_offsets_size = 1;
   __pyx_v_state = 0;
 
   /* "xordiff.pyx":10
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
- *     cdef int i = 0, j = 0, state = 0
- *     offsets = [0]             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
+ *     cdef unsigned int i = 0, j = 0, offsets_size = 1, state = 0
+ *     retoff[0] = 0             # <<<<<<<<<<<<<<
  * 
  *     while i < size:
  */
-  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 10, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_INCREF(__pyx_int_0);
-  __Pyx_GIVEREF(__pyx_int_0);
-  PyList_SET_ITEM(__pyx_t_5, 0, __pyx_int_0);
-  __pyx_v_offsets = ((PyObject*)__pyx_t_5);
-  __pyx_t_5 = 0;
+  __pyx_t_8 = 0;
+  if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_pybuffernd_retoff.diminfo[0].shape;
+  *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_retoff.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_retoff.diminfo[0].strides) = 0;
 
   /* "xordiff.pyx":12
- *     offsets = [0]
+ *     retoff[0] = 0
  * 
  *     while i < size:             # <<<<<<<<<<<<<<
  *             if state == 0:
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:
+ *                 if n1[i] == n2[i]:
  */
   while (1) {
-    __pyx_t_7 = ((__pyx_v_i < __pyx_v_size) != 0);
-    if (!__pyx_t_7) break;
+    __pyx_t_9 = ((__pyx_v_i < __pyx_v_size) != 0);
+    if (!__pyx_t_9) break;
 
     /* "xordiff.pyx":13
  * 
  *     while i < size:
  *             if state == 0:             # <<<<<<<<<<<<<<
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:
- *                     offsets.append(i)
+ *                 if n1[i] == n2[i]:
+ *                     retoff[offsets_size] = i
  */
     switch (__pyx_v_state) {
       case 0:
@@ -1589,61 +1612,68 @@ static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self,
       /* "xordiff.pyx":14
  *     while i < size:
  *             if state == 0:
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:             # <<<<<<<<<<<<<<
- *                     offsets.append(i)
- *                     state = 1
+ *                 if n1[i] == n2[i]:             # <<<<<<<<<<<<<<
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1
  */
-      __pyx_t_8 = ((unsigned int)__pyx_v_i);
-      __pyx_t_9 = ((unsigned int)__pyx_v_i);
-      __pyx_t_7 = (((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_n1.diminfo[0].strides)) == (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n2.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_n2.diminfo[0].strides))) != 0);
-      if (__pyx_t_7) {
+      __pyx_t_10 = __pyx_v_i;
+      __pyx_t_11 = __pyx_v_i;
+      __pyx_t_9 = (((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_10, __pyx_pybuffernd_n1.diminfo[0].strides)) == (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n2.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_n2.diminfo[0].strides))) != 0);
+      if (__pyx_t_9) {
 
         /* "xordiff.pyx":15
  *             if state == 0:
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:
- *                     offsets.append(i)             # <<<<<<<<<<<<<<
+ *                 if n1[i] == n2[i]:
+ *                     retoff[offsets_size] = i             # <<<<<<<<<<<<<<
+ *                     offsets_size += 1
+ *                     state = 1
+ */
+        __pyx_t_12 = __pyx_v_offsets_size;
+        *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_retoff.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_retoff.diminfo[0].strides) = __pyx_v_i;
+
+        /* "xordiff.pyx":16
+ *                 if n1[i] == n2[i]:
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1             # <<<<<<<<<<<<<<
  *                     state = 1
  *                 else:
  */
-        __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 15, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_5);
-        __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_offsets, __pyx_t_5); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 15, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_v_offsets_size = (__pyx_v_offsets_size + 1);
 
-        /* "xordiff.pyx":16
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:
- *                     offsets.append(i)
+        /* "xordiff.pyx":17
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1
  *                     state = 1             # <<<<<<<<<<<<<<
  *                 else:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *                     h[j] = n1[i]
  */
         __pyx_v_state = 1;
 
         /* "xordiff.pyx":14
  *     while i < size:
  *             if state == 0:
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:             # <<<<<<<<<<<<<<
- *                     offsets.append(i)
- *                     state = 1
+ *                 if n1[i] == n2[i]:             # <<<<<<<<<<<<<<
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1
  */
         goto __pyx_L5;
       }
 
-      /* "xordiff.pyx":18
+      /* "xordiff.pyx":19
  *                     state = 1
  *                 else:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]             # <<<<<<<<<<<<<<
+ *                     h[j] = n1[i]             # <<<<<<<<<<<<<<
  *                     j += 1
  * 
  */
       /*else*/ {
-        __pyx_t_11 = ((unsigned int)__pyx_v_i);
-        __pyx_t_12 = ((unsigned int)__pyx_v_j);
-        *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_h.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_h.diminfo[0].strides) = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_n1.diminfo[0].strides));
+        __pyx_t_13 = __pyx_v_i;
+        __pyx_t_14 = __pyx_v_j;
+        *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_h.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_h.diminfo[0].strides) = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_13, __pyx_pybuffernd_n1.diminfo[0].strides));
 
-        /* "xordiff.pyx":19
+        /* "xordiff.pyx":20
  *                 else:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *                     h[j] = n1[i]
  *                     j += 1             # <<<<<<<<<<<<<<
  * 
  *             elif state == 1:
@@ -1656,239 +1686,226 @@ static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self,
  * 
  *     while i < size:
  *             if state == 0:             # <<<<<<<<<<<<<<
- *                 if n1[<unsigned int>i] == n2[<unsigned int>i]:
- *                     offsets.append(i)
+ *                 if n1[i] == n2[i]:
+ *                     retoff[offsets_size] = i
  */
       break;
 
-      /* "xordiff.pyx":21
+      /* "xordiff.pyx":22
  *                     j += 1
  * 
  *             elif state == 1:             # <<<<<<<<<<<<<<
- *                 if n1[<unsigned int>i] != n2[<unsigned int>i]:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *                 if n1[i] != n2[i]:
+ *                     h[j] = n1[i]
  */
       case 1:
 
-      /* "xordiff.pyx":22
+      /* "xordiff.pyx":23
  * 
  *             elif state == 1:
- *                 if n1[<unsigned int>i] != n2[<unsigned int>i]:             # <<<<<<<<<<<<<<
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *                 if n1[i] != n2[i]:             # <<<<<<<<<<<<<<
+ *                     h[j] = n1[i]
  *                     j += 1
  */
-      __pyx_t_13 = ((unsigned int)__pyx_v_i);
-      __pyx_t_14 = ((unsigned int)__pyx_v_i);
-      __pyx_t_7 = (((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_13, __pyx_pybuffernd_n1.diminfo[0].strides)) != (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n2.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_n2.diminfo[0].strides))) != 0);
-      if (__pyx_t_7) {
-
-        /* "xordiff.pyx":23
- *             elif state == 1:
- *                 if n1[<unsigned int>i] != n2[<unsigned int>i]:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]             # <<<<<<<<<<<<<<
- *                     j += 1
- *                     offsets.append(i)
- */
-        __pyx_t_15 = ((unsigned int)__pyx_v_i);
-        __pyx_t_16 = ((unsigned int)__pyx_v_j);
-        *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_h.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_h.diminfo[0].strides) = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_n1.diminfo[0].strides));
+      __pyx_t_15 = __pyx_v_i;
+      __pyx_t_16 = __pyx_v_i;
+      __pyx_t_9 = (((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_n1.diminfo[0].strides)) != (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n2.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_n2.diminfo[0].strides))) != 0);
+      if (__pyx_t_9) {
 
         /* "xordiff.pyx":24
- *                 if n1[<unsigned int>i] != n2[<unsigned int>i]:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *             elif state == 1:
+ *                 if n1[i] != n2[i]:
+ *                     h[j] = n1[i]             # <<<<<<<<<<<<<<
+ *                     j += 1
+ *                     retoff[offsets_size] = i
+ */
+        __pyx_t_17 = __pyx_v_i;
+        __pyx_t_18 = __pyx_v_j;
+        *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_h.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_h.diminfo[0].strides) = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_17, __pyx_pybuffernd_n1.diminfo[0].strides));
+
+        /* "xordiff.pyx":25
+ *                 if n1[i] != n2[i]:
+ *                     h[j] = n1[i]
  *                     j += 1             # <<<<<<<<<<<<<<
- *                     offsets.append(i)
- *                     state = 0
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1
  */
         __pyx_v_j = (__pyx_v_j + 1);
 
-        /* "xordiff.pyx":25
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+        /* "xordiff.pyx":26
+ *                     h[j] = n1[i]
  *                     j += 1
- *                     offsets.append(i)             # <<<<<<<<<<<<<<
+ *                     retoff[offsets_size] = i             # <<<<<<<<<<<<<<
+ *                     offsets_size += 1
+ *                     state = 0
+ */
+        __pyx_t_19 = __pyx_v_offsets_size;
+        *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_retoff.rcbuffer->pybuffer.buf, __pyx_t_19, __pyx_pybuffernd_retoff.diminfo[0].strides) = __pyx_v_i;
+
+        /* "xordiff.pyx":27
+ *                     j += 1
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1             # <<<<<<<<<<<<<<
  *                     state = 0
  *             i+=1
  */
-        __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 25, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_5);
-        __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_offsets, __pyx_t_5); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 25, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_v_offsets_size = (__pyx_v_offsets_size + 1);
 
-        /* "xordiff.pyx":26
- *                     j += 1
- *                     offsets.append(i)
+        /* "xordiff.pyx":28
+ *                     retoff[offsets_size] = i
+ *                     offsets_size += 1
  *                     state = 0             # <<<<<<<<<<<<<<
  *             i+=1
  *     if state == 0:
  */
         __pyx_v_state = 0;
 
-        /* "xordiff.pyx":22
+        /* "xordiff.pyx":23
  * 
  *             elif state == 1:
- *                 if n1[<unsigned int>i] != n2[<unsigned int>i]:             # <<<<<<<<<<<<<<
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *                 if n1[i] != n2[i]:             # <<<<<<<<<<<<<<
+ *                     h[j] = n1[i]
  *                     j += 1
  */
       }
 
-      /* "xordiff.pyx":21
+      /* "xordiff.pyx":22
  *                     j += 1
  * 
  *             elif state == 1:             # <<<<<<<<<<<<<<
- *                 if n1[<unsigned int>i] != n2[<unsigned int>i]:
- *                     h[<unsigned int>j] = n1[<unsigned int>i]
+ *                 if n1[i] != n2[i]:
+ *                     h[j] = n1[i]
  */
       break;
       default: break;
     }
 
-    /* "xordiff.pyx":27
- *                     offsets.append(i)
+    /* "xordiff.pyx":29
+ *                     offsets_size += 1
  *                     state = 0
  *             i+=1             # <<<<<<<<<<<<<<
  *     if state == 0:
- *         offsets.append(i)
+ *         retoff[offsets_size] = i
  */
     __pyx_v_i = (__pyx_v_i + 1);
   }
 
-  /* "xordiff.pyx":28
+  /* "xordiff.pyx":30
  *                     state = 0
  *             i+=1
  *     if state == 0:             # <<<<<<<<<<<<<<
- *         offsets.append(i)
- *     retoff = np.array(offsets,dtype=np.uint)
+ *         retoff[offsets_size] = i
+ *         offsets_size += 1
  */
-  __pyx_t_7 = ((__pyx_v_state == 0) != 0);
-  if (__pyx_t_7) {
+  __pyx_t_9 = ((__pyx_v_state == 0) != 0);
+  if (__pyx_t_9) {
 
-    /* "xordiff.pyx":29
+    /* "xordiff.pyx":31
  *             i+=1
  *     if state == 0:
- *         offsets.append(i)             # <<<<<<<<<<<<<<
- *     retoff = np.array(offsets,dtype=np.uint)
+ *         retoff[offsets_size] = i             # <<<<<<<<<<<<<<
+ *         offsets_size += 1
+ *     retoff.resize(offsets_size, refcheck=False)
+ */
+    __pyx_t_20 = __pyx_v_offsets_size;
+    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_retoff.rcbuffer->pybuffer.buf, __pyx_t_20, __pyx_pybuffernd_retoff.diminfo[0].strides) = __pyx_v_i;
+
+    /* "xordiff.pyx":32
+ *     if state == 0:
+ *         retoff[offsets_size] = i
+ *         offsets_size += 1             # <<<<<<<<<<<<<<
+ *     retoff.resize(offsets_size, refcheck=False)
  *     h.resize(j, refcheck=False)
  */
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 29, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_offsets, __pyx_t_5); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 29, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_v_offsets_size = (__pyx_v_offsets_size + 1);
 
-    /* "xordiff.pyx":28
+    /* "xordiff.pyx":30
  *                     state = 0
  *             i+=1
  *     if state == 0:             # <<<<<<<<<<<<<<
- *         offsets.append(i)
- *     retoff = np.array(offsets,dtype=np.uint)
+ *         retoff[offsets_size] = i
+ *         offsets_size += 1
  */
   }
 
-  /* "xordiff.pyx":30
- *     if state == 0:
- *         offsets.append(i)
- *     retoff = np.array(offsets,dtype=np.uint)             # <<<<<<<<<<<<<<
+  /* "xordiff.pyx":33
+ *         retoff[offsets_size] = i
+ *         offsets_size += 1
+ *     retoff.resize(offsets_size, refcheck=False)             # <<<<<<<<<<<<<<
  *     h.resize(j, refcheck=False)
  *     return h,retoff
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_retoff), __pyx_n_s_resize); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyInt_From_unsigned_int(__pyx_v_offsets_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 30, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_INCREF(__pyx_v_offsets);
-  __Pyx_GIVEREF(__pyx_v_offsets);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_offsets);
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_uint); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 30, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 30, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
+  __pyx_t_5 = 0;
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_refcheck, Py_False) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 30, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 30, __pyx_L1_error)
-  __pyx_t_17 = ((PyArrayObject *)__pyx_t_4);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_retoff.rcbuffer->pybuffer);
-    __pyx_t_18 = __Pyx_GetBufferAndValidate(&__pyx_pybuffernd_retoff.rcbuffer->pybuffer, (PyObject*)__pyx_t_17, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack);
-    if (unlikely(__pyx_t_18 < 0)) {
-      PyErr_Fetch(&__pyx_t_19, &__pyx_t_20, &__pyx_t_21);
-      if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_retoff.rcbuffer->pybuffer, (PyObject*)__pyx_v_retoff, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
-        Py_XDECREF(__pyx_t_19); Py_XDECREF(__pyx_t_20); Py_XDECREF(__pyx_t_21);
-        __Pyx_RaiseBufferFallbackError();
-      } else {
-        PyErr_Restore(__pyx_t_19, __pyx_t_20, __pyx_t_21);
-      }
-    }
-    __pyx_pybuffernd_retoff.diminfo[0].strides = __pyx_pybuffernd_retoff.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_retoff.diminfo[0].shape = __pyx_pybuffernd_retoff.rcbuffer->pybuffer.shape[0];
-    if (unlikely(__pyx_t_18 < 0)) __PYX_ERR(0, 30, __pyx_L1_error)
-  }
-  __pyx_t_17 = 0;
-  __pyx_v_retoff = ((PyArrayObject *)__pyx_t_4);
-  __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "xordiff.pyx":31
- *         offsets.append(i)
- *     retoff = np.array(offsets,dtype=np.uint)
+  /* "xordiff.pyx":34
+ *         offsets_size += 1
+ *     retoff.resize(offsets_size, refcheck=False)
  *     h.resize(j, refcheck=False)             # <<<<<<<<<<<<<<
  *     return h,retoff
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_h), __pyx_n_s_resize); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_j); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
-  __pyx_t_3 = 0;
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_refcheck, Py_False) < 0) __PYX_ERR(0, 31, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_h), __pyx_n_s_resize); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_5 = __Pyx_PyInt_From_unsigned_int(__pyx_v_j); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
+  __pyx_t_5 = 0;
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_refcheck, Py_False) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "xordiff.pyx":32
- *     retoff = np.array(offsets,dtype=np.uint)
+  /* "xordiff.pyx":35
+ *     retoff.resize(offsets_size, refcheck=False)
  *     h.resize(j, refcheck=False)
  *     return h,retoff             # <<<<<<<<<<<<<<
  * 
  * @cython.boundscheck(False)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(((PyObject *)__pyx_v_h));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_h));
-  PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)__pyx_v_h));
+  PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)__pyx_v_h));
   __Pyx_INCREF(((PyObject *)__pyx_v_retoff));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_retoff));
-  PyTuple_SET_ITEM(__pyx_t_1, 1, ((PyObject *)__pyx_v_retoff));
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  PyTuple_SET_ITEM(__pyx_t_4, 1, ((PyObject *)__pyx_v_retoff));
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
   goto __pyx_L0;
 
   /* "xordiff.pyx":6
  * 
  * @cython.boundscheck(False)
- * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, int size):             # <<<<<<<<<<<<<<
+ * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
  */
 
   /* function exit code */
@@ -1918,18 +1935,17 @@ static PyObject *__pyx_pf_8_xordiff_numpyxor(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_L2:;
   __Pyx_XDECREF((PyObject *)__pyx_v_h);
   __Pyx_XDECREF((PyObject *)__pyx_v_retoff);
-  __Pyx_XDECREF(__pyx_v_offsets);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "xordiff.pyx":35
+/* "xordiff.pyx":38
  * 
  * @cython.boundscheck(False)
  * def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
  */
 
 /* Python wrapper */
@@ -1963,16 +1979,16 @@ static PyObject *__pyx_pw_8_xordiff_3numpyundif(PyObject *__pyx_self, PyObject *
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("numpyundif", 1, 3, 3, 1); __PYX_ERR(0, 35, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("numpyundif", 1, 3, 3, 1); __PYX_ERR(0, 38, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_offsets)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("numpyundif", 1, 3, 3, 2); __PYX_ERR(0, 35, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("numpyundif", 1, 3, 3, 2); __PYX_ERR(0, 38, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "numpyundif") < 0)) __PYX_ERR(0, 35, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "numpyundif") < 0)) __PYX_ERR(0, 38, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1987,15 +2003,15 @@ static PyObject *__pyx_pw_8_xordiff_3numpyundif(PyObject *__pyx_self, PyObject *
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("numpyundif", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 35, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("numpyundif", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 38, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("_xordiff.numpyundif", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_n1), __pyx_ptype_5numpy_ndarray, 1, "n1", 0))) __PYX_ERR(0, 35, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_n2), __pyx_ptype_5numpy_ndarray, 1, "n2", 0))) __PYX_ERR(0, 35, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_offsets), __pyx_ptype_5numpy_ndarray, 1, "offsets", 0))) __PYX_ERR(0, 35, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_n1), __pyx_ptype_5numpy_ndarray, 1, "n1", 0))) __PYX_ERR(0, 38, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_n2), __pyx_ptype_5numpy_ndarray, 1, "n2", 0))) __PYX_ERR(0, 38, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_offsets), __pyx_ptype_5numpy_ndarray, 1, "offsets", 0))) __PYX_ERR(0, 38, __pyx_L1_error)
   __pyx_r = __pyx_pf_8_xordiff_2numpyundif(__pyx_self, __pyx_v_n1, __pyx_v_n2, __pyx_v_offsets);
 
   /* function exit code */
@@ -2009,12 +2025,12 @@ static PyObject *__pyx_pw_8_xordiff_3numpyundif(PyObject *__pyx_self, PyObject *
 
 static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_n1, PyArrayObject *__pyx_v_n2, PyArrayObject *__pyx_v_offsets) {
   PyArrayObject *__pyx_v_retarr = 0;
-  int __pyx_v_i;
-  int __pyx_v_j;
-  int __pyx_v_n1off;
-  CYTHON_UNUSED int __pyx_v_start;
-  int __pyx_v_stop;
-  CYTHON_UNUSED PyObject *__pyx_v_off = NULL;
+  unsigned int __pyx_v_i;
+  unsigned int __pyx_v_j;
+  unsigned int __pyx_v_n1off;
+  unsigned int __pyx_v_start;
+  unsigned int __pyx_v_stop;
+  unsigned int __pyx_v_size;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_n1;
   __Pyx_Buffer __pyx_pybuffer_n1;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_n2;
@@ -2029,9 +2045,9 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyArrayObject *__pyx_t_4 = NULL;
-  int __pyx_t_5;
-  Py_ssize_t __pyx_t_6;
-  __pyx_t_5numpy_uint_t __pyx_t_7;
+  unsigned int __pyx_t_5;
+  int __pyx_t_6;
+  size_t __pyx_t_7;
   Py_ssize_t __pyx_t_8;
   size_t __pyx_t_9;
   size_t __pyx_t_10;
@@ -2054,28 +2070,28 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_pybuffernd_offsets.rcbuffer = &__pyx_pybuffer_offsets;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_n1.rcbuffer->pybuffer, (PyObject*)__pyx_v_n1, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 35, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_n1.rcbuffer->pybuffer, (PyObject*)__pyx_v_n1, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 38, __pyx_L1_error)
   }
   __pyx_pybuffernd_n1.diminfo[0].strides = __pyx_pybuffernd_n1.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_n1.diminfo[0].shape = __pyx_pybuffernd_n1.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_n2.rcbuffer->pybuffer, (PyObject*)__pyx_v_n2, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 35, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_n2.rcbuffer->pybuffer, (PyObject*)__pyx_v_n2, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 38, __pyx_L1_error)
   }
   __pyx_pybuffernd_n2.diminfo[0].strides = __pyx_pybuffernd_n2.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_n2.diminfo[0].shape = __pyx_pybuffernd_n2.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_offsets.rcbuffer->pybuffer, (PyObject*)__pyx_v_offsets, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 35, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_offsets.rcbuffer->pybuffer, (PyObject*)__pyx_v_offsets, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 38, __pyx_L1_error)
   }
   __pyx_pybuffernd_offsets.diminfo[0].strides = __pyx_pybuffernd_offsets.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_offsets.diminfo[0].shape = __pyx_pybuffernd_offsets.rcbuffer->pybuffer.shape[0];
 
-  /* "xordiff.pyx":36
+  /* "xordiff.pyx":39
  * @cython.boundscheck(False)
  * def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()             # <<<<<<<<<<<<<<
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
- *     while i < offsets.size:
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
+ *     while i < size:
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_n2), __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_n2), __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2088,20 +2104,20 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 39, __pyx_L1_error)
   __pyx_t_4 = ((PyArrayObject *)__pyx_t_1);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_retarr.rcbuffer->pybuffer, (PyObject*)__pyx_t_4, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_retarr = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_retarr.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 36, __pyx_L1_error)
+      __PYX_ERR(0, 39, __pyx_L1_error)
     } else {__pyx_pybuffernd_retarr.diminfo[0].strides = __pyx_pybuffernd_retarr.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_retarr.diminfo[0].shape = __pyx_pybuffernd_retarr.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -2109,99 +2125,98 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_v_retarr = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "xordiff.pyx":37
+  /* "xordiff.pyx":40
  * def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0             # <<<<<<<<<<<<<<
- *     while i < offsets.size:
- *         off = start = offsets[i]
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size             # <<<<<<<<<<<<<<
+ *     while i < size:
+ *         start = offsets[i]
  */
   __pyx_v_i = 0;
   __pyx_v_j = 0;
   __pyx_v_n1off = 0;
   __pyx_v_start = 0;
   __pyx_v_stop = 0;
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_offsets), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_5 = __Pyx_PyInt_As_unsigned_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_size = __pyx_t_5;
 
-  /* "xordiff.pyx":38
+  /* "xordiff.pyx":41
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
- *     while i < offsets.size:             # <<<<<<<<<<<<<<
- *         off = start = offsets[i]
- *         stop = offsets[i+1]
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
+ *     while i < size:             # <<<<<<<<<<<<<<
+ *         start = offsets[i]
+ *         j = start
  */
   while (1) {
-    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_offsets), __pyx_n_s_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!__pyx_t_5) break;
+    __pyx_t_6 = ((__pyx_v_i < __pyx_v_size) != 0);
+    if (!__pyx_t_6) break;
 
-    /* "xordiff.pyx":39
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
- *     while i < offsets.size:
- *         off = start = offsets[i]             # <<<<<<<<<<<<<<
+    /* "xordiff.pyx":42
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
+ *     while i < size:
+ *         start = offsets[i]             # <<<<<<<<<<<<<<
+ *         j = start
+ *         stop = offsets[i+1]
+ */
+    __pyx_t_7 = __pyx_v_i;
+    __pyx_v_start = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_offsets.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_offsets.diminfo[0].strides));
+
+    /* "xordiff.pyx":43
+ *     while i < size:
+ *         start = offsets[i]
+ *         j = start             # <<<<<<<<<<<<<<
  *         stop = offsets[i+1]
  *         while j < stop:
  */
-    __pyx_t_6 = __pyx_v_i;
-    if (__pyx_t_6 < 0) __pyx_t_6 += __pyx_pybuffernd_offsets.diminfo[0].shape;
-    __pyx_t_7 = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_offsets.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_offsets.diminfo[0].strides));
-    __pyx_t_3 = __Pyx_PyInt_From_npy_ulong(__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_INCREF(__pyx_t_3);
-    __Pyx_XDECREF_SET(__pyx_v_off, __pyx_t_3);
-    __pyx_v_start = __pyx_t_7;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_v_j = __pyx_v_start;
 
-    /* "xordiff.pyx":40
- *     while i < offsets.size:
- *         off = start = offsets[i]
+    /* "xordiff.pyx":44
+ *         start = offsets[i]
+ *         j = start
  *         stop = offsets[i+1]             # <<<<<<<<<<<<<<
  *         while j < stop:
- *             retarr[<unsigned int>j] = n1[<unsigned int>n1off]
+ *             retarr[j] = n1[n1off]
  */
     __pyx_t_8 = (__pyx_v_i + 1);
     if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_pybuffernd_offsets.diminfo[0].shape;
     __pyx_v_stop = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint_t *, __pyx_pybuffernd_offsets.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_offsets.diminfo[0].strides));
 
-    /* "xordiff.pyx":41
- *         off = start = offsets[i]
+    /* "xordiff.pyx":45
+ *         j = start
  *         stop = offsets[i+1]
  *         while j < stop:             # <<<<<<<<<<<<<<
- *             retarr[<unsigned int>j] = n1[<unsigned int>n1off]
+ *             retarr[j] = n1[n1off]
  *             n1off += 1
  */
     while (1) {
-      __pyx_t_5 = ((__pyx_v_j < __pyx_v_stop) != 0);
-      if (!__pyx_t_5) break;
+      __pyx_t_6 = ((__pyx_v_j < __pyx_v_stop) != 0);
+      if (!__pyx_t_6) break;
 
-      /* "xordiff.pyx":42
+      /* "xordiff.pyx":46
  *         stop = offsets[i+1]
  *         while j < stop:
- *             retarr[<unsigned int>j] = n1[<unsigned int>n1off]             # <<<<<<<<<<<<<<
+ *             retarr[j] = n1[n1off]             # <<<<<<<<<<<<<<
  *             n1off += 1
  *             j += 1
  */
-      __pyx_t_9 = ((unsigned int)__pyx_v_n1off);
-      __pyx_t_10 = ((unsigned int)__pyx_v_j);
+      __pyx_t_9 = __pyx_v_n1off;
+      __pyx_t_10 = __pyx_v_j;
       *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_retarr.rcbuffer->pybuffer.buf, __pyx_t_10, __pyx_pybuffernd_retarr.diminfo[0].strides) = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_n1.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_n1.diminfo[0].strides));
 
-      /* "xordiff.pyx":43
+      /* "xordiff.pyx":47
  *         while j < stop:
- *             retarr[<unsigned int>j] = n1[<unsigned int>n1off]
+ *             retarr[j] = n1[n1off]
  *             n1off += 1             # <<<<<<<<<<<<<<
  *             j += 1
  *         i += 2
  */
       __pyx_v_n1off = (__pyx_v_n1off + 1);
 
-      /* "xordiff.pyx":44
- *             retarr[<unsigned int>j] = n1[<unsigned int>n1off]
+      /* "xordiff.pyx":48
+ *             retarr[j] = n1[n1off]
  *             n1off += 1
  *             j += 1             # <<<<<<<<<<<<<<
  *         i += 2
@@ -2210,7 +2225,7 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
       __pyx_v_j = (__pyx_v_j + 1);
     }
 
-    /* "xordiff.pyx":45
+    /* "xordiff.pyx":49
  *             n1off += 1
  *             j += 1
  *         i += 2             # <<<<<<<<<<<<<<
@@ -2219,7 +2234,7 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
     __pyx_v_i = (__pyx_v_i + 2);
   }
 
-  /* "xordiff.pyx":46
+  /* "xordiff.pyx":50
  *             j += 1
  *         i += 2
  *     return retarr             # <<<<<<<<<<<<<<
@@ -2229,12 +2244,12 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_r = ((PyObject *)__pyx_v_retarr);
   goto __pyx_L0;
 
-  /* "xordiff.pyx":35
+  /* "xordiff.pyx":38
  * 
  * @cython.boundscheck(False)
  * def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
  */
 
   /* function exit code */
@@ -2261,7 +2276,6 @@ static PyObject *__pyx_pf_8_xordiff_2numpyundif(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_retarr.rcbuffer->pybuffer);
   __pyx_L2:;
   __Pyx_XDECREF((PyObject *)__pyx_v_retarr);
-  __Pyx_XDECREF(__pyx_v_off);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -4417,7 +4431,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
-  {&__pyx_n_s_array, __pyx_k_array, sizeof(__pyx_k_array), 0, 0, 1, 1},
   {&__pyx_n_s_copy, __pyx_k_copy, sizeof(__pyx_k_copy), 0, 0, 1, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_empty, __pyx_k_empty, sizeof(__pyx_k_empty), 0, 0, 1, 1},
@@ -4436,8 +4449,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_numpyundif, __pyx_k_numpyundif, sizeof(__pyx_k_numpyundif), 0, 0, 1, 1},
   {&__pyx_n_s_numpyxor, __pyx_k_numpyxor, sizeof(__pyx_k_numpyxor), 0, 0, 1, 1},
-  {&__pyx_n_s_off, __pyx_k_off, sizeof(__pyx_k_off), 0, 0, 1, 1},
   {&__pyx_n_s_offsets, __pyx_k_offsets, sizeof(__pyx_k_offsets), 0, 0, 1, 1},
+  {&__pyx_n_s_offsets_size, __pyx_k_offsets_size, sizeof(__pyx_k_offsets_size), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_refcheck, __pyx_k_refcheck, sizeof(__pyx_k_refcheck), 0, 0, 1, 1},
   {&__pyx_n_s_resize, __pyx_k_resize, sizeof(__pyx_k_resize), 0, 0, 1, 1},
@@ -4536,26 +4549,26 @@ static int __Pyx_InitCachedConstants(void) {
   /* "xordiff.pyx":6
  * 
  * @cython.boundscheck(False)
- * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, int size):             # <<<<<<<<<<<<<<
+ * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
  */
-  __pyx_tuple__7 = PyTuple_Pack(9, __pyx_n_s_n1, __pyx_n_s_n2, __pyx_n_s_size, __pyx_n_s_h, __pyx_n_s_retoff, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_state, __pyx_n_s_offsets); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(9, __pyx_n_s_n1, __pyx_n_s_n2, __pyx_n_s_size, __pyx_n_s_h, __pyx_n_s_retoff, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_offsets_size, __pyx_n_s_state); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
   __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_josiah_GSEF_src_xordiff_Cy, __pyx_n_s_numpyxor, 6, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 6, __pyx_L1_error)
 
-  /* "xordiff.pyx":35
+  /* "xordiff.pyx":38
  * 
  * @cython.boundscheck(False)
  * def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
  */
-  __pyx_tuple__9 = PyTuple_Pack(10, __pyx_n_s_n1, __pyx_n_s_n2, __pyx_n_s_offsets, __pyx_n_s_retarr, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_n1off, __pyx_n_s_start, __pyx_n_s_stop, __pyx_n_s_off); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(10, __pyx_n_s_n1, __pyx_n_s_n2, __pyx_n_s_offsets, __pyx_n_s_retarr, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_n1off, __pyx_n_s_start, __pyx_n_s_stop, __pyx_n_s_size); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
-  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(3, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_josiah_GSEF_src_xordiff_Cy, __pyx_n_s_numpyundif, 35, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(3, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_josiah_GSEF_src_xordiff_Cy, __pyx_n_s_numpyundif, 38, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -4565,7 +4578,6 @@ static int __Pyx_InitCachedConstants(void) {
 
 static int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
-  __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -4689,25 +4701,25 @@ PyMODINIT_FUNC PyInit__xordiff(void)
   /* "xordiff.pyx":6
  * 
  * @cython.boundscheck(False)
- * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, int size):             # <<<<<<<<<<<<<<
+ * def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
- *     cdef np.ndarray[np.uint_t, ndim=1] retoff
+ *     cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8_xordiff_1numpyxor, NULL, __pyx_n_s_xordiff); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpyxor, __pyx_t_1) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "xordiff.pyx":35
+  /* "xordiff.pyx":38
  * 
  * @cython.boundscheck(False)
  * def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):             # <<<<<<<<<<<<<<
  *     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
- *     cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
+ *     cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8_xordiff_3numpyundif, NULL, __pyx_n_s_xordiff); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8_xordiff_3numpyundif, NULL, __pyx_n_s_xordiff); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpyundif, __pyx_t_1) < 0) __PYX_ERR(0, 35, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpyundif, __pyx_t_1) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "xordiff.pyx":1
@@ -5552,12 +5564,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
     return 0;
 }
 
-/* BufferFallbackError */
-    static void __Pyx_RaiseBufferFallbackError(void) {
-  PyErr_SetString(PyExc_ValueError,
-     "Buffer acquisition failed on assignment; and then reacquiring the old buffer failed too!");
-}
-
 /* PyErrFetchRestore */
     #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
@@ -6113,55 +6119,28 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
     }
 
 /* CIntToPy */
-          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
-    const int neg_one = (int) -1, const_zero = (int) 0;
+          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_unsigned_int(unsigned int value) {
+    const unsigned int neg_one = (unsigned int) -1, const_zero = (unsigned int) 0;
     const int is_unsigned = neg_one > const_zero;
     if (is_unsigned) {
-        if (sizeof(int) < sizeof(long)) {
+        if (sizeof(unsigned int) < sizeof(long)) {
             return PyInt_FromLong((long) value);
-        } else if (sizeof(int) <= sizeof(unsigned long)) {
+        } else if (sizeof(unsigned int) <= sizeof(unsigned long)) {
             return PyLong_FromUnsignedLong((unsigned long) value);
-        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
+        } else if (sizeof(unsigned int) <= sizeof(unsigned PY_LONG_LONG)) {
             return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
         }
     } else {
-        if (sizeof(int) <= sizeof(long)) {
+        if (sizeof(unsigned int) <= sizeof(long)) {
             return PyInt_FromLong((long) value);
-        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
+        } else if (sizeof(unsigned int) <= sizeof(PY_LONG_LONG)) {
             return PyLong_FromLongLong((PY_LONG_LONG) value);
         }
     }
     {
         int one = 1; int little = (int)*(unsigned char *)&one;
         unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(int),
-                                     little, !is_unsigned);
-    }
-}
-
-/* CIntToPy */
-          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_npy_ulong(npy_ulong value) {
-    const npy_ulong neg_one = (npy_ulong) -1, const_zero = (npy_ulong) 0;
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(npy_ulong) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(npy_ulong) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-        } else if (sizeof(npy_ulong) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-        }
-    } else {
-        if (sizeof(npy_ulong) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(npy_ulong) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-        }
-    }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(npy_ulong),
+        return _PyLong_FromByteArray(bytes, sizeof(unsigned int),
                                      little, !is_unsigned);
     }
 }
@@ -6411,6 +6390,33 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
 #endif
 
 /* CIntToPy */
+          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
+    const int neg_one = (int) -1, const_zero = (int) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(int) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(int) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+        }
+    } else {
+        if (sizeof(int) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(int),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
           static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__NPY_TYPES(enum NPY_TYPES value) {
     const enum NPY_TYPES neg_one = (enum NPY_TYPES) -1, const_zero = (enum NPY_TYPES) 0;
     const int is_unsigned = neg_one > const_zero;
@@ -6435,6 +6441,191 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
         return _PyLong_FromByteArray(bytes, sizeof(enum NPY_TYPES),
                                      little, !is_unsigned);
     }
+}
+
+/* CIntFromPy */
+          static CYTHON_INLINE unsigned int __Pyx_PyInt_As_unsigned_int(PyObject *x) {
+    const unsigned int neg_one = (unsigned int) -1, const_zero = (unsigned int) 0;
+    const int is_unsigned = neg_one > const_zero;
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(unsigned int) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(unsigned int, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (unsigned int) val;
+        }
+    } else
+#endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (unsigned int) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(unsigned int, digit, digits[0])
+                case 2:
+                    if (8 * sizeof(unsigned int) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) >= 2 * PyLong_SHIFT) {
+                            return (unsigned int) (((((unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0]));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(unsigned int) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) >= 3 * PyLong_SHIFT) {
+                            return (unsigned int) (((((((unsigned int)digits[2]) << PyLong_SHIFT) | (unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0]));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(unsigned int) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) >= 4 * PyLong_SHIFT) {
+                            return (unsigned int) (((((((((unsigned int)digits[3]) << PyLong_SHIFT) | (unsigned int)digits[2]) << PyLong_SHIFT) | (unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0]));
+                        }
+                    }
+                    break;
+            }
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+#else
+            {
+                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
+                if (unlikely(result < 0))
+                    return (unsigned int) -1;
+                if (unlikely(result == 1))
+                    goto raise_neg_overflow;
+            }
+#endif
+            if (sizeof(unsigned int) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned int, unsigned long, PyLong_AsUnsignedLong(x))
+            } else if (sizeof(unsigned int) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned int, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+            }
+        } else {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (unsigned int) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(unsigned int, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(unsigned int,  digit, +digits[0])
+                case -2:
+                    if (8 * sizeof(unsigned int) - 1 > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) - 1 > 2 * PyLong_SHIFT) {
+                            return (unsigned int) (((unsigned int)-1)*(((((unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0])));
+                        }
+                    }
+                    break;
+                case 2:
+                    if (8 * sizeof(unsigned int) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) - 1 > 2 * PyLong_SHIFT) {
+                            return (unsigned int) ((((((unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0])));
+                        }
+                    }
+                    break;
+                case -3:
+                    if (8 * sizeof(unsigned int) - 1 > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) - 1 > 3 * PyLong_SHIFT) {
+                            return (unsigned int) (((unsigned int)-1)*(((((((unsigned int)digits[2]) << PyLong_SHIFT) | (unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0])));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(unsigned int) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) - 1 > 3 * PyLong_SHIFT) {
+                            return (unsigned int) ((((((((unsigned int)digits[2]) << PyLong_SHIFT) | (unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0])));
+                        }
+                    }
+                    break;
+                case -4:
+                    if (8 * sizeof(unsigned int) - 1 > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) - 1 > 4 * PyLong_SHIFT) {
+                            return (unsigned int) (((unsigned int)-1)*(((((((((unsigned int)digits[3]) << PyLong_SHIFT) | (unsigned int)digits[2]) << PyLong_SHIFT) | (unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0])));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(unsigned int) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(unsigned int, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned int) - 1 > 4 * PyLong_SHIFT) {
+                            return (unsigned int) ((((((((((unsigned int)digits[3]) << PyLong_SHIFT) | (unsigned int)digits[2]) << PyLong_SHIFT) | (unsigned int)digits[1]) << PyLong_SHIFT) | (unsigned int)digits[0])));
+                        }
+                    }
+                    break;
+            }
+#endif
+            if (sizeof(unsigned int) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned int, long, PyLong_AsLong(x))
+            } else if (sizeof(unsigned int) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned int, PY_LONG_LONG, PyLong_AsLongLong(x))
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            unsigned int val;
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (unsigned int) -1;
+        }
+    } else {
+        unsigned int val;
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
+        if (!tmp) return (unsigned int) -1;
+        val = __Pyx_PyInt_As_unsigned_int(tmp);
+        Py_DECREF(tmp);
+        return val;
+    }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to unsigned int");
+    return (unsigned int) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to unsigned int");
+    return (unsigned int) -1;
 }
 
 /* CIntFromPy */

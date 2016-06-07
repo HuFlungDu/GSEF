@@ -3,43 +3,47 @@ import numpy as np
 cimport cython
 
 @cython.boundscheck(False)
-def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, int size):
+def numpyxor(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, unsigned int size):
     cdef np.ndarray[np.uint8_t, ndim=1] h = np.empty(size, dtype=np.uint8)
-    cdef np.ndarray[np.uint_t, ndim=1] retoff
-    cdef int i = 0, j = 0, state = 0
-    offsets = [0]
+    cdef np.ndarray[np.uint_t, ndim=1] retoff = np.empty(size, dtype=np.uint)
+    cdef unsigned int i = 0, j = 0, offsets_size = 1, state = 0
+    retoff[0] = 0
 
     while i < size:
             if state == 0:
-                if n1[<unsigned int>i] == n2[<unsigned int>i]:
-                    offsets.append(i)
+                if n1[i] == n2[i]:
+                    retoff[offsets_size] = i
+                    offsets_size += 1
                     state = 1
                 else:
-                    h[<unsigned int>j] = n1[<unsigned int>i]
+                    h[j] = n1[i]
                     j += 1
 
             elif state == 1:
-                if n1[<unsigned int>i] != n2[<unsigned int>i]:
-                    h[<unsigned int>j] = n1[<unsigned int>i]
+                if n1[i] != n2[i]:
+                    h[j] = n1[i]
                     j += 1
-                    offsets.append(i)
+                    retoff[offsets_size] = i
+                    offsets_size += 1
                     state = 0
             i+=1
     if state == 0:
-        offsets.append(i)
-    retoff = np.array(offsets,dtype=np.uint)
+        retoff[offsets_size] = i
+        offsets_size += 1
+    retoff.resize(offsets_size, refcheck=False)
     h.resize(j, refcheck=False)
     return h,retoff
 
 @cython.boundscheck(False)
 def numpyundif(np.ndarray[np.uint8_t, ndim=1] n1, np.ndarray[np.uint8_t, ndim=1] n2, np.ndarray[np.uint_t, ndim=1] offsets):
     cdef np.ndarray[np.uint8_t, ndim=1] retarr = n2.copy()
-    cdef int i = 0, j = 0, n1off = 0, start = 0, stop = 0
-    while i < offsets.size:
-        off = start = offsets[i]
+    cdef unsigned int i = 0, j = 0, n1off = 0, start = 0, stop = 0, size = offsets.size
+    while i < size:
+        start = offsets[i]
+        j = start
         stop = offsets[i+1]
         while j < stop:
-            retarr[<unsigned int>j] = n1[<unsigned int>n1off]
+            retarr[j] = n1[n1off]
             n1off += 1
             j += 1
         i += 2
