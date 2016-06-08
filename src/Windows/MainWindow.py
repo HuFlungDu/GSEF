@@ -44,10 +44,10 @@ def MakeBuffer(target, data, size):
 
 '''class GLContextWidget(Gtk.DrawingArea):
     __gtype_name__ = 'GLArea'
-    
+
     def __init__(self):
         Gtk.DrawingArea.__init__(self)
-        
+
         MainVertexData = numpy.array([-1,1,0,1,7,1,0,1,-1,-1,0,1,7,-1,0,1],numpy.float32)
         RelativeVertexData = numpy.array([0,0,1,0,0,1,1,1],
                                      numpy.float32)
@@ -61,7 +61,7 @@ def MakeBuffer(target, data, size):
                                          GL_FRAGMENT_SHADER))
     def realize(self):
         window = self.get_window()
-        
+
     def update_texture(self,texture,width = 0, height = 0, x_pot_waste = 0, y_pot_waste = 0):
         pass'''
 """class ClutterGLArea(clutter.Actor):
@@ -70,7 +70,7 @@ def MakeBuffer(target, data, size):
     def __init__(self):
         self.texture = None
         clutter.Actor.__init__(self)
-        
+
 
     def update_texture(self,texture,textype,gl_target=None, width = 0, height = 0, x_pot_waste = 0, y_pot_waste = 0, pformat = cogl.PixelFormat.ANY):
         '''if textype == "cogl":
@@ -88,11 +88,11 @@ def MakeBuffer(target, data, size):
             cogl.rectangle(0,0,self.get_width(),self.get_height())"""
 
 class timed_label(Gtk.Label):
-    
+
     def add_text_timer(self,text,timer):
         self.set_text(text)
         GObject.timeout_add(timer,self._timer_callback,text)
-    
+
     def _timer_callback(self,text):
         if self.get_text() == text:
             self.set_text("")
@@ -140,7 +140,7 @@ class MainWindow(Gtk.Window):
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.pack_start(menubar, False, False, 0)
-        
+
         box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.FPSlabel = Gtk.Label("")
         self.statusLabel = timed_label("No Game Loaded")
@@ -163,21 +163,21 @@ class MainWindow(Gtk.Window):
         #eventbox.add(label)
 
         self.popup = uimanager.get_widget("/PopupMenu")
-        
+
         self.connect("key-press-event", self.KeyPressed)
         self.connect("key-release-event", self.KeyReleased)
 
         self.add(box)
-        
+
     def KeyPressed(self, widget, event):
-        modkeys = ["Control_R", "Shift_R", "Alt_R", "Control_L", "Super_L", 
+        modkeys = ["Control_R", "Shift_R", "Alt_R", "Control_L", "Super_L",
                    "Super_R", "Alt_L", "Shift_L", "Meta_L", "Meta_R"]
         masks = {'GDK_SHIFT_MASK':'Shift',
                  'GDK_CONTROL_MASK':'Control',
                  'GDK_SUPER_MASK':'Super',
                  'GDK_MOD1_MASK':'Alt'
                  }
-        
+
         if not Gdk.keyval_name(event.get_keyval()[1]) in modkeys:
             modifiers = []
             for mod in event.get_state().value_names:
@@ -199,14 +199,14 @@ class MainWindow(Gtk.Window):
             self.setControl(keystring, Globals.Hotkeys, 1)
             Globals.system.update_controls(Globals.Controls)
     def KeyReleased(self,widget,event):
-        modkeys = ["Control_R", "Shift_R", "Alt_R", "Control_L", "Super_L", 
+        modkeys = ["Control_R", "Shift_R", "Alt_R", "Control_L", "Super_L",
                    "Super_R", "Alt_L", "Shift_L", "Meta_L", "Meta_R"]
         masks = {'GDK_SHIFT_MASK':'Shift',
                  'GDK_CONTROL_MASK':'Control',
                  'GDK_SUPER_MASK':'Super',
                  'GDK_MOD1_MASK':'Alt'
                  }
-        
+
         if not Gdk.keyval_name(event.get_keyval()[1]) in modkeys:
             modifiers = []
             for mod in event.get_state().value_names:
@@ -227,25 +227,25 @@ class MainWindow(Gtk.Window):
             self.clearControl(keystring, Globals.Controls)
             self.clearControl(keystring, Globals.Hotkeys)
             Globals.system.update_controls(Globals.Controls)
-        
+
     def clearControl(self, control, dic):
         for i in dic:
             try:
                 if dic[i].get_mapping() == control.split("+")[-1]:
                     dic[i].set_state(0)
-                    
+
             except AttributeError:
                 self.clearControl(control, dic[i])
-    
+
     def setControl(self, control, dic, value):
         for i in dic:
             try:
                 if dic[i].get_mapping() == control:
                     if dic[i].get_digital():
-                        dic[i].set_state(1)
+                        dic[i].set_state(1 if dic[i].get_state() else 2)
                     else:
                         dic[i].set_state(dic[i].get_sensitivity()*value)
-                    
+
             except AttributeError:
                 self.setControl(control, dic[i],value)
 
@@ -262,47 +262,47 @@ class MainWindow(Gtk.Window):
         action_InstallSystem.connect("activate", self.on_menu_install_system)
         action_group.add_action_with_accel(action_InstallSystem, None)
 
-        action_InstallCore = Gtk.Action("System_InstallCore", "Install Core", 
+        action_InstallCore = Gtk.Action("System_InstallCore", "Install Core",
                                         "Install a new Core", None)
         action_InstallCore.connect("activate", self.on_menu_install_core)
         action_group.add_action(action_InstallCore)
-        
-        action_ManageSystems = Gtk.Action("System_ManageSystemsAndCores", "Manage Systems and Cores", 
+
+        action_ManageSystems = Gtk.Action("System_ManageSystemsAndCores", "Manage Systems and Cores",
                                         "Manage Systems and Cores", None)
         action_ManageSystems.connect("activate", self.on_menu_manage_systems_and_cores)
         action_group.add_action(action_ManageSystems)
-        
+
         action_PlayGame = Gtk.Action("Game_PlayGame", "Play Game", None, None)
         #action_Quit.connect("activate", self.on_menu_quit)
         action_group.add_action(action_PlayGame)
-        
+
         action_MakeGame = Gtk.Action("Game_MakeGame", "Make Game", None, None)
         action_MakeGame.connect("activate", self.on_menu_make_game)
         action_group.add_action(action_MakeGame)
-        
+
         action_ManageGames = Gtk.Action("Game_ManageGames", "Manage Games", None, None)
         action_ManageGames.connect("activate", self.on_menu_manage_games)
         action_group.add_action(action_ManageGames)
-        
+
         action_Controls = Gtk.Action("Settings_Controls", "Controls", None, None)
         action_Controls.connect("activate", self.on_menu_controls)
         action_group.add_action(action_Controls)
-        
+
         action_Controls = Gtk.Action("Settings_Calibrate", "Calibrate joysticks", None, None)
         action_Controls.connect("activate", self.on_menu_calibrate)
         action_group.add_action(action_Controls)
-        
+
         action_AspectRatio = Gtk.ToggleAction("Settings_AspectRatio", "Keep Correct Aspect Ratio", None, None)
         if Globals.SettingsXML.find("AspectRatio").get("keep") == "True":
             action_AspectRatio.set_active(True)
         action_AspectRatio.connect("activate", self.on_menu_aspectratio)
         action_group.add_action(action_AspectRatio)
-        
+
         action_Quit = Gtk.Action("Game_Quit", "Quit", None, None)
         action_Quit.connect("activate", self.on_menu_quit)
         action_group.add_action(action_Quit)
 
-    
+
     def create_ui_manager(self):
         uimanager = Gtk.UIManager()
 
@@ -329,7 +329,7 @@ class MainWindow(Gtk.Window):
             filter.add_pattern("*.tar.bz2")
             filter.set_name("Compressed System Files")
             path = Globals.SettingsXML.find("Paths").find("LastAccessedSystem").get("path")
-            filechooser = Gtk.FileChooserDialog(title="Select System", 
+            filechooser = Gtk.FileChooserDialog(title="Select System",
                                                 buttons= (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.ACCEPT))
             filechooser.set_transient_for(self)
             filechooser.connect("response",self.System_Install_Response)
@@ -368,7 +368,7 @@ class MainWindow(Gtk.Window):
                 popup.show_all()
         FileChooser.destroy()
         Globals.OpenWindows &= ~Globals.WINDOWTYPE_FILECHOOSER
-    
+
     def on_menu_install_core(self, widget):
         if not Globals.OpenWindows & Globals.WINDOWTYPE_FILECHOOSER:
             filter = Gtk.FileFilter()
@@ -378,14 +378,14 @@ class MainWindow(Gtk.Window):
             filter.add_pattern("*.tar.bz2")
             filter.set_name("Compressed System Files")
             path = Globals.SettingsXML.find("Paths").find("LastAccessedCore").get("path")
-            filechooser = Gtk.FileChooserDialog(title="Select System", 
+            filechooser = Gtk.FileChooserDialog(title="Select System",
                                                 buttons= (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.ACCEPT))
             filechooser.set_transient_for(self)
             filechooser.connect("response",self.Core_Install_Response)
             filechooser.add_filter(filter)
             filechooser.show_all()
             Globals.OpenWindows |= Globals.WINDOWTYPE_FILECHOOSER
-        
+
     def Core_Install_Response(self,FileChooser,Response):
         CoreSettingsTree = {("",1,("name","system"),SettingsCheck.CoreNameSanityCheck) : None}
         if Response == Gtk.ResponseType.ACCEPT:
@@ -422,13 +422,13 @@ class MainWindow(Gtk.Window):
                 popup.show_all()
         FileChooser.destroy()
         Globals.OpenWindows &= ~Globals.WINDOWTYPE_FILECHOOSER
-        
+
     def on_menu_manage_systems_and_cores(self, widget):
         if not Globals.OpenWindows & Globals.WINDOWTYPE_MANAGESYSTEMS:
             ManagerWindow = ManageSystemsWindow()
             ManagerWindow.set_transient_for(self)
             ManagerWindow.show_all()
-            
+
     def on_menu_make_game(self,widget):
         if not len(Globals.Systems) or not len(Globals.Cores):
             popup = ErrorPopupWindow("No Systems or Core", "A game cannot be created without at least one system and one core")
@@ -445,20 +445,20 @@ class MainWindow(Gtk.Window):
             ManagerWindow = ManageGamesWindow()
             ManagerWindow.set_transient_for(self)
             ManagerWindow.show_all()
-        
+
     def on_menu_controls(self,widget):
         if not Globals.OpenWindows & Globals.WINDOWTYPE_CONTROLS:
             controlsWindow = ControlsWindow()
             controlsWindow.set_transient_for(self)
             controlsWindow.show_all()
-            
+
     def on_menu_calibrate(self,widget):
         return
         if not Globals.OpenWindows & Globals.WINDOWTYPE_CONTROLS:
             controlsWindow = ControlsWindow()
             controlsWindow.set_transient_for(self)
             controlsWindow.show_all()
-        
+
     def on_menu_quit(self, widget):
         self.destroy()
 

@@ -111,14 +111,22 @@ class System(object):
         self.system.load_state(data)
 
     def save_state(self, statename):
-        savedata = self.system.get_save_state_data()
-        with open("{}savestates/{}".format(self._gamepath,statename),'w') as savefile:
-            savefile.write(savedata)
+        try:
+            savedata = self.system.get_save_state_data()
+            with open("{}savestates/{}".format(self._gamepath,statename),'wb') as savefile:
+                savefile.write(savedata)
+            Globals.Mainwindow.statusLabel.add_text_timer("Saved {}".format(statename), 3000)
+        except:
+            Globals.Mainwindow.statusLabel.add_text_timer("Failed to save {}".format(statename), 3000)
 
     def load_state(self,statename):
-        with open("{}savestates/{}".format(self._gamepath,statename),'r') as savefile:
-            savedata = savefile.read()
-        self.system.load_state(savedata)
+        try:
+            with open("{}savestates/{}".format(self._gamepath,statename),'rb') as savefile:
+                savedata = numpy.fromstring(savefile.read(), dtype=numpy.uint8)
+            self.system.load_state(savedata)
+            Globals.Mainwindow.statusLabel.add_text_timer("Loaded {}".format(statename), 3000)
+        except:
+            Globals.Mainwindow.statusLabel.add_text_timer("Failed to load {}".format(statename), 3000)
 
     def toggle_pause(self):
         if self.running:
@@ -136,7 +144,7 @@ class System(object):
             try:
                 if dic[i].get_mapping() == control:
                     if dic[i].get_digital():
-                        dic[i].set_state(1)
+                        dic[i].set_state(1 if dic[i].get_state() else 2)
                     else:
                         dic[i].set_state(round(dic[i].get_sensitivity()*value))
 
@@ -290,6 +298,8 @@ class GSEF(object):
         Globals.Joysticks = [pygame.joystick.Joystick(i) for i in xrange(pygame.joystick.get_count())]
         [i.init() for i in Globals.Joysticks]
 
+        self.state_slot = 0
+
         if not os.path.isdir(Globals.DataDir+"temp"):
             os.mkdir(Globals.DataDir+"temp")
         if not os.path.isdir(Globals.DataDir+"Systems"):
@@ -344,6 +354,20 @@ class GSEF(object):
         Gtk.main_quit()
 
     def runframe(self):
+
+        if Globals.Hotkeys["Save State"].changed_this_frame and Globals.Hotkeys["Save State"].get_state():
+            Globals.system.save_state("state {}".format(self.state_slot))
+
+        if Globals.Hotkeys["Load State"].changed_this_frame and Globals.Hotkeys["Load State"].get_state():
+            Globals.system.load_state("state {}".format(self.state_slot))
+
+        if Globals.Hotkeys["Increment State Slot"].changed_this_frame and Globals.Hotkeys["Increment State Slot"].get_state():
+            self.state_slot += 1
+            self.window.statusLabel.add_text_timer("State slot {} selected".format(self.state_slot), 3000)
+
+        if Globals.Hotkeys["Decrement State Slot"].changed_this_frame and Globals.Hotkeys["Decrement State Slot"].get_state():
+            self.state_slot = max(0, self.state_slot-1)
+            self.window.statusLabel.add_text_timer("State slot {} selected".format(self.state_slot), 3000)
 
         if Globals.system and Globals.Hotkeys["Rewind"].get_state() and len(Globals.StateSizes):
             Globals.system.rewinding = True
@@ -608,6 +632,7 @@ class Control(object):
         self.__mapping = mapping
         self.__state = 0
         self.__sensitivity = sensitivity
+        self.changed_this_frame = False
 
     def __repr__(self):
         return self.__str__()
@@ -617,9 +642,12 @@ class Control(object):
         return "<Control Name: {0}, Mapping: {1}, Type: {2}, State: {3}>".format(self.__name,self.__mapping, self.__ctype, self.__state)
 
     def set_state(self,state):
+        if state != self.__state:
+            self.changed_this_frame = True
         self.__state = state
 
     def get_state(self):
+        self.changed_this_frame = False
         return self.__state
 
     def get_type(self):
