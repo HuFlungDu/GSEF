@@ -588,6 +588,11 @@ class GSEF(object):
         sysxmlpath = "{0}Systems/System_{1}/system.xml".format(Globals.DataDir,systemname)
         patchpath = "{0}{1}".format(gamepath,patchname)
         controlpath = "{0}game.xml".format(gamepath)
+        savespath = "{}savestates".format(gamepath)
+        try:
+            os.makedirs(savespath)
+        except:
+            pass
         with open(controlpath,'r') as controlxmlfile:
             controlxml = ET.XML(controlxmlfile.read())
         if controlxml.find("Controls").get("inherit") == "True":

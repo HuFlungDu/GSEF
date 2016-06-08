@@ -20,16 +20,16 @@ class GamesTreeView(Gtk.TreeView):
         cell = Gtk.CellRendererText()
         tvcolumn.pack_start(cell, False)
         tvcolumn.add_attribute(cell, 'text', 0)
-    
+
     def get_selected_strings(self):
         (treemodel, treeiter) = self.get_selection().get_selected()
         return treemodel.get(treeiter,0)
-    
+
     def get_selected_parent_strings(self):
         (treemodel, treeiter) = self.get_selection().get_selected()
         parentiter = treemodel.iter_parent(treeiter)
         return treemodel.get(parentiter,0)
-    
+
     def get_selection_tree_strings(self):
         (model, pathlist) = self.get_selection().get_selected_rows()
         path = pathlist[0]
@@ -43,7 +43,7 @@ class GamesTreeView(Gtk.TreeView):
         while len(tree) < 3:
             tree.append(u"")
         return tree
-        
+
 
 class ManageGamesWindow(Gtk.Window):
     def __init__(self):
@@ -54,10 +54,13 @@ class ManageGamesWindow(Gtk.Window):
         treeview = GamesTreeView(self.make_treestore())
         removebutton = Gtk.Button("Remove")
         removebutton.set_sensitive(False)
+        cleardatabutton = Gtk.Button("Clear Data")
+        cleardatabutton.set_sensitive(False)
         playbutton = Gtk.Button("Play Game")
         playbutton.set_sensitive(False)
-        treeview.get_selection().connect("changed", self.tvchanged, removebutton, playbutton)
+        treeview.get_selection().connect("changed", self.tvchanged, removebutton, cleardatabutton, playbutton)
         removebutton.connect("clicked",self.removegame,treeview)
+        cleardatabutton.connect("clicked", self.cleargamedata, treeview)
         playbutton.connect("clicked", self.playgame, treeview)
         donebutton = Gtk.Button("Done")
         donebutton.connect("clicked",self.Destroy_Window)
@@ -65,22 +68,23 @@ class ManageGamesWindow(Gtk.Window):
         mainhbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         mainhbox.pack_end(donebutton, False, False, 10)
         mainhbox.pack_end(playbutton, False, False, 5)
+        mainhbox.pack_end(cleardatabutton, False, False, 5)
         mainhbox.pack_end(removebutton, False, False, 5)
         treeview.connect("row-activated", self.playgametv)
-        
+
         self.connect("delete-event",self.On_Delete)
         mainvbox.pack_start(mainhbox,False,False,10)
         self.add(mainvbox)
-        
-        
+
+
     def Destroy_Window(self,widget1):
         self.destroy()
         Globals.OpenWindows &= ~Globals.WINDOWTYPE_MANAGEGAMES
-        
+
     def On_Delete(self,Window,ResponseType):
         Globals.OpenWindows &= ~Globals.WINDOWTYPE_MANAGEGAMES
-        
-    def make_treestore(self):            
+
+    def make_treestore(self):
         treestore = Gtk.TreeStore(str)
         for i in Globals.Games:
             parent = treestore.append(None, [i])
@@ -89,13 +93,13 @@ class ManageGamesWindow(Gtk.Window):
                 for k in Globals.Games[i][j]:
                     treestore.append(parent2,[k])
         return treestore
-    
+
     def playgametv(self,Treeview, Path, Column):
         (_, pathlist) = Treeview.get_selection().get_selected_rows()
         if len(pathlist) and pathlist[0].get_depth()>1:
             self.playgame(None,Treeview)
-        
-    
+
+
     def removegame(self,Button,Treeview):
         (_, pathlist) = Treeview.get_selection().get_selected_rows()
         depth = pathlist[0].get_depth()
@@ -109,7 +113,14 @@ class ManageGamesWindow(Gtk.Window):
             dialog.connect("response",self.ConfirmationReturn,Treeview)
             dialog.set_transient_for(self)
             dialog.show_all()
-    
+
+    def cleargamedata(self, Button, Treeview):
+        (_, pathlist) = Treeview.get_selection().get_selected_rows()
+        dialog = ConfirmationDialog("Clear Data", "Remove all of this game's data?")
+        dialog.connect("response",self.ClearDataReturn,Treeview)
+        dialog.set_transient_for(self)
+        dialog.show_all()
+
     def playgame(self,Button,Treeview):
         (_, pathlist) = Treeview.get_selection().get_selected_rows()
         depth = pathlist[0].get_depth()
@@ -118,8 +129,8 @@ class ManageGamesWindow(Gtk.Window):
         corename = filter(lambda x: x.name == Gamename,Globals.Games[Sysname].keys())[0].core
         Globals.load_game(Sysname, corename, Gamename, Patchname)
         self.Destroy_Window(self)
-        
-        
+
+
     def ConfirmationReturn(self,window,ResponseType,Treeview):
         if ResponseType == Gtk.ResponseType.ACCEPT:
             (_, pathlist) = Treeview.get_selection().get_selected_rows()
@@ -129,13 +140,13 @@ class ManageGamesWindow(Gtk.Window):
             Sysname, Gamename, Patchname = tree[0],tree[1],tree[2]
             Syslam = lambda x: x.get("name") == Sysname
             Gamelam = lambda x: x.get("name") == Gamename
-            Patchlam = lambda x: x.get("name") == Patchname 
+            Patchlam = lambda x: x.get("name") == Patchname
             if depth == 3:
                 for i in filter(Syslam, Globals.GamesXML.findall("System")):
                     for j in filter(Gamelam, i.findall("Game")):
                         for k in filter(Patchlam, j.findall("Patch")):
                             j.remove(k)
-                shutil.rmtree(Globals.DataDir+"Games/"+Sysname+"/"+Gamename+"/"+Patchname)
+                shutil.rmtree(Globals.DataDir+"Games/"+Sysname+"/"+Gamename+"/patches/"+Patchname)
             elif depth == 2:
                 shutil.rmtree(Globals.DataDir+"Games/"+Sysname+"/"+Gamename)
                 for i in filter(Syslam, Globals.GamesXML.findall("System")):
@@ -143,14 +154,26 @@ class ManageGamesWindow(Gtk.Window):
                         i.remove(j)
             Globals.Update_Games()
             Treeview.set_model(self.make_treestore())
-            
+
         self.Destroy_Window(self)
-    
-    def tvchanged(self, Selection,removebutton,playbutton):
+
+    def ClearDataReturn(self, window, ResponseType,Treeview):
+        if ResponseType == Gtk.ResponseType.ACCEPT:
+            (_, pathlist) = Treeview.get_selection().get_selected_rows()
+            path = pathlist[0]
+            depth = path.get_depth()
+            tree = Treeview.get_selection_tree_strings()
+            Sysname, Gamename, Patchname = tree[0],tree[1],tree[2]
+            if depth == 3:
+                shutil.rmtree(Globals.DataDir+"Games/"+Sysname+"/"+Gamename+"/patches/"+Patchname+"/savestates")
+            else:
+                shutil.rmtree(Globals.DataDir+"Games/"+Sysname+"/"+Gamename+"/savestates")
+
+    def tvchanged(self, Selection,*buttons):
         (_, pathlist) = Selection.get_selected_rows()
         if len(pathlist) and pathlist[0].get_depth()>1:
-            removebutton.set_sensitive(True)
-            playbutton.set_sensitive(True)
+            for button in buttons:
+                button.set_sensitive(True)
         else:
-            removebutton.set_sensitive(False)
-            playbutton.set_sensitive(False)
+            for button in buttons:
+                button.set_sensitive(False)

@@ -440,7 +440,6 @@ class MainWindow(Gtk.Window):
             GameMakerWindow.show_all()
 
     def on_menu_manage_games(self, widget):
-        print "manage games"
         if not Globals.OpenWindows & Globals.WINDOWTYPE_MANAGEGAMES:
             ManagerWindow = ManageGamesWindow()
             ManagerWindow.set_transient_for(self)
